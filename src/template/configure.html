@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jackettio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <style>
+      .container {max-width: 600px}
+    </style>
+  </head>
+  <body id="app">
+    <div class="container my-5">
+      <h1 class="mb-5">{{addon.name}} <small>v{{addon.version}}</small></h1>
+      <form>
+        <div class="mb-3">
+          <label>Exclude keywords in torrent name</label>
+          <input type="text" v-model="form.excludeKeywords" placeholder="keyword1,keyword2" class="form-control">
+          <small class="text-muted">Example: cam,xvid</small>
+        </div>
+        <div class="mb-3">
+          <label>Qualities:</label>
+          <div class="d-flex">
+            <div v-for="quality in qualities" class="me-3">
+              <input class="form-check-input me-1" type="checkbox" v-model="quality.checked" :id="quality.label">
+              <label class="form-check-label" :for="quality.label">{{quality.label}}</label>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label>Cached torrents sorting</label>
+          <select v-model="form.sortCached" class="form-select">
+            <option v-for="sort in sorts" :value="sort.value">{{sort.label}}</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label>Uncached torrents sorting</label>
+          <select v-model="form.sortUncached" class="form-select">
+            <option v-for="sort in sorts" :value="sort.value">{{sort.label}}</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label>Max Torrents in search</label>
+          <input type="number" v-model="form.maxTorrents" min="1" max="30" class="form-control">
+          <small class="text-muted">A high number can significantly slow down the request</small>
+        </div>
+        <div class="mb-3">
+          <label>Force include series pack in search</label>
+          <input type="number" v-model="form.priotizePackTorrents" min="1" max="30" class="form-control">
+          <small class="text-muted">This option could increase chance of caching torrents</small>
+        </div>
+        <div class="mb-3">
+          <label>Debrid provider:</label>
+          <select v-model="debrid" class="form-select" @change="form.debridId = debrid.id">
+            <option v-for="option in debrids" :value="option">{{ option.name }}</option>
+          </select>
+        </div>
+        <div v-for="field in debrid.configFields" class="mb-3">
+          <label>{{field.label}}:</label> 
+          <small v-if="field.href" class="ms-2"><a :href="field.href.value" target="_blank" rel="noreferrer">{{field.href.label}}</a></small>
+          <input type="{{field.type}}" v-model="field.value" class="form-control">
+        </div>
+        <div class="mb-3 d-flex align-items-center">
+          <button @click="configure" type="button" class="btn btn-primary" :disabled="!debrid.id">Install</button>
+          <div v-if="error" class="text-danger ms-2">{{error}}</div>
+        </div>
+      </form>
+    </div>
+
+    <script src="https://unpkg.com/vue@3.4.19/dist/vue.global.prod.js"></script>
+    <script type="text/javascript">/** import-config */</script>
+    <script type="text/javascript">
+      const { createApp, ref } = Vue
+      createApp({
+        setup() {
+
+          const {addon, debrids, defaultUserConfig, qualities, sorts} = config;
+
+          const debrid = ref({});
+          const error = ref('');
+
+          const form = {
+            maxTorrents: defaultUserConfig.maxTorrents,
+            priotizePackTorrents: defaultUserConfig.priotizePackTorrents,
+            excludeKeywords: defaultUserConfig.excludeKeywords.join(','),
+            debridId: '',
+            sortCached: defaultUserConfig.sortCached,
+            sortUncached: defaultUserConfig.sortUncached
+          };
+          qualities.forEach(quality => quality.checked = defaultUserConfig.qualities.includes(quality.value));
+
+          function configure(){
+            try {
+              error.value = '';
+              const userConfig = Object.assign({}, form);
+              userConfig.qualities = qualities.filter(quality => quality.checked).map(quality => quality.value);
+              userConfig.excludeKeywords = form.excludeKeywords.split(',').filter(Boolean);
+              debrid.value.configFields.forEach(field => {
+                if(field.required && !field.value)throw new Error(`${field.label} is required`);
+                userConfig[field.name] = field.value
+              });
+
+              if(!userConfig.debridId){
+                throw new Error(`Debrid is required`);
+              }
+
+              if(!userConfig.qualities.length){
+                throw new Error(`Quality is required`);
+              }
+
+              document.location.href=`stremio://${document.location.host}/${btoa(JSON.stringify(userConfig))}/manifest.json`;
+            }catch(err){
+              error.value = err.message || err;
+            }
+          }
+
+          return {
+            addon,
+            debrids,
+            debrid,
+            qualities,
+            sorts,
+            form,
+            configure,
+            error
+          }
+        }
+      }).mount('#app')
+    </script>
+  </body>
+</html>
