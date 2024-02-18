@@ -3,6 +3,7 @@ import localtunnel from 'localtunnel';
 import {readFileSync} from "fs";
 import config from './lib/config.js';
 import cache from './lib/cache.js';
+import path from 'path';
 import * as debrid from './lib/debrid.js';
 import * as jackettio from "./lib/jackettio.js";
 import {cleanTorrentFolder, createTorrentFolder} from './lib/torrentInfos.js';
@@ -18,6 +19,7 @@ const respond = (res, data) => {
 }
 
 app.set('trust proxy', 'loopback');
+app.use(express.static(path.join(import.meta.dirname, 'static')));
 
 app.use((req, res, next) => {
   console.log(req.path);
@@ -103,8 +105,23 @@ app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
 
     console.log(err);
 
-    res.status(404);
-    res.end();
+    switch(err.message){
+      case debrid.ERROR.NOT_READY:
+        res.redirect(`/videos/not_ready.mp4`);
+        res.end();
+        break;
+      case debrid.ERROR.EXPIRED_API_KEY:
+        res.redirect(`/videos/expired_api_key.mp4`);
+        res.end();
+        break;
+      case debrid.ERROR.NOT_PREMIUM:
+        res.redirect(`/videos/not_premium.mp4`);
+        res.end();
+        break;
+      default:
+        res.redirect(`/videos/error.mp4`);
+        res.end();
+    }
 
   }
 
