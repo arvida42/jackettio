@@ -30,7 +30,7 @@ services:
       - 9117:9117
 
   jackettio:
-    image: todo
+    image: arvida42/jackettio:latest
     container_name: jackettio
     env_file:
       - .env.production
@@ -45,7 +45,7 @@ services:
       - 4000:4000
     restart: unless-stopped
     volumes:
-      - ./src:/home/node/app/src
+      - jackettio-data:/data
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.jackettio.entrypoints=web,websecure"
@@ -59,3 +59,4 @@ networks:
 volumes:
   jackett-config:
   jackett-downloads:
+  jackettio-data:
