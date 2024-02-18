@@ -1,12 +1,14 @@
 import pLimit from 'p-limit';
 import {parseWords, numberPad, sortBy, bytesToSize, wait} from './util.js';
 import config from './config.js';
+import cache from './cache.js';
 import * as meta from './meta.js';
 import * as jackett from './jackett.js';
 import * as debrid from './debrid.js';
 import * as torrentInfos from './torrentInfos.js';
 
 const searchInProgess = {};
+const getDownloadInProgress = {};
 
 const parseStremioId = (stremioId) => {
   const [id, season, episode] = stremioId.split(':');
@@ -35,7 +37,7 @@ export async function getTorrents(metaInfos, userConfig, debridInstance){
     const filterSearch = (torrent) => {
       if(!qualities.includes(torrent.quality))return false;
       const torrentWords = parseWords(torrent.name.toLowerCase());
-      if(excludeKeywords.find(torrentWords.find))return false;
+      if(excludeKeywords.find(word => torrentWords.includes(word)))return false;
       return true;
     };
 
@@ -46,23 +48,22 @@ export async function getTorrents(metaInfos, userConfig, debridInstance){
 
       console.log(`${stremioId} : ${torrents.length} torrents found`);
 
-      torrents = torrents.filter(filterSearch).sort(sortBy(...sortSearch));
+      torrents = torrents.filter(filterSearch).sort(sortBy(...sortSearch)).slice(0, maxTorrents);
 
     }else if(type == 'series'){
 
       infos = await meta.getEpisodeById(id, season, episode);
-
-      console.log(`${stremioId} : ${torrents.length} torrents found`);
 
       const [episodesTorrents, packsTorrents] = await Promise.all([
         jackett.searchEpisodeTorrents(infos).then(items => items.filter(filterSearch)),
         jackett.searchSeasonTorrents(infos).then(items => items.filter(torrent => filterSearch(torrent) && parseWords(torrent.name.toUpperCase()).includes(`S${numberPad(season)}`)))
       ]);
 
-      torrents = [].concat(episodesTorrents, packsTorrents)
-          .filter(filterSearch)
-          .sort(sortBy(...sortSearch))
-          .slice(0, maxTorrents);
+      torrents = [].concat(episodesTorrents, packsTorrents);
+
+      console.log(`${stremioId} : ${torrents.length} torrents found`);
+
+      torrents = torrents.filter(filterSearch).sort(sortBy(...sortSearch)).slice(0, maxTorrents);
 
       if(priotizePackTorrents > 0 && packsTorrents.length && !torrents.find(t => packsTorrents.includes(t))){
         const bestPackTorrents = packsTorrents.slice(0, Math.min(packsTorrents.length, priotizePackTorrents));
@@ -84,7 +85,6 @@ export async function getTorrents(metaInfos, userConfig, debridInstance){
       }
     })));
     torrents = torrents.filter((torrent, index) => torrent && torrents.findIndex(t => t.infos.infoHash == torrent.infos.infoHash) === index);
-    torrents.splice(maxTorrents);
 
     console.log(`${stremioId} : ${torrents.length} torrents filtered`);
 
@@ -163,36 +163,64 @@ export async function getDownload(userConfig, type, stremioId, torrentId){
   const debridInstance = debrid.instance(userConfig);
   const infos = await torrentInfos.getById(torrentId);
   const {id, season, episode} = parseStremioId(stremioId);
+  const cacheKey = `download:${await debridInstance.getUserHash()}:${stremioId}:${torrentId}`;
   let files;
+  let download;
+  let waitMs = 0;
 
-  console.log(`${stremioId} : get files ...`);
-
-  if(infos.magnetUrl){
-    files = await debridInstance.getFilesFromMagnet(infos.magnetUrl);
-  }else{
-    const buffer = torrentInfos.getTorrentFile(infos);
-    files = await debridInstance.getFilesFromBuffer(buffer);
+  while(getDownloadInProgress[cacheKey]){
+    await wait(Math.min(300, waitMs+=50));
   }
+  getDownloadInProgress[cacheKey] = true;
 
-  console.log(`${stremioId} : ${files.length} files found`);
+  try {
 
-  files = files.sort(sortBy('size', true));
+    download = await cache.get(cacheKey);
+    if(download)return download;
 
-  if(type == 'movie'){
+    console.log(`${stremioId} : get files ...`);
 
-    return await debridInstance.getDownload(files[0]);
+    if(infos.magnetUrl){
+      files = await debridInstance.getFilesFromMagnet(infos.magnetUrl);
+    }else{
+      const buffer = torrentInfos.getTorrentFile(infos);
+      files = await debridInstance.getFilesFromBuffer(buffer);
+    }
 
-  }else if(type == 'series'){
+    console.log(`${stremioId} : ${files.length} files found`);
 
-    let bestFile = files.find(file => file.name.includes(`S${numberPad(season)}E${numberPad(episode)}`))
-      || files.find(file => file.name.includes(`${season}${numberPad(episode)}`))
-      || files.find(file => file.name.includes(`${numberPad(episode)}`))
-      || files[0];
+    files = files.sort(sortBy('size', true));
 
-    return await debridInstance.getDownload(bestFile);
+    if(type == 'movie'){
+
+      download = await debridInstance.getDownload(files[0]);
+
+    }else if(type == 'series'){
+
+      let bestFile = files.find(file => file.name.includes(`S${numberPad(season)}E${numberPad(episode)}`))
+        || files.find(file => file.name.includes(`${season}${numberPad(episode)}`))
+        || files.find(file => file.name.includes(`${numberPad(episode)}`))
+        || files[0];
+
+      download = await debridInstance.getDownload(bestFile);
+
+    }
+
+    if(download){
+      await cache.set(cacheKey, download, {ttl: 3600});
+      return download;
+    }
+
+    throw new Error(`No download for type ${type} and ID ${torrentId}`);
+
+  }catch(err){
+
+    throw err;
+
+  }finally{
+
+    delete getDownloadInProgress[cacheKey];
 
   }
-
-  throw new Error(`No download for type ${type} and ID ${torrentId}`);
 
 }
