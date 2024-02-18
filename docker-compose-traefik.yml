@@ -5,7 +5,7 @@ services:
   jackettio:
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik"
+      - "traefik.docker.network=jackettio_traefik"
       - "traefik.http.routers.jackettio.entrypoints=web,websecure"
       - "traefik.http.routers.jackettio.rule=Host(`${ACME_DOMAIN:-}`)"
       - "traefik.http.routers.jackettio.tls=true"
