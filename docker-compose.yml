@@ -1,3 +1,4 @@
+version: "3.3"
 name: jackettio
 services:
 
@@ -26,8 +27,6 @@ services:
     volumes:
       - jackett-config:/config
       - jackett-downloads:/downloads
-    ports:
-      - 9117:9117
 
   jackettio:
     image: arvida42/jackettio:latest
@@ -41,17 +40,9 @@ services:
       - jackett
     networks:
       - jackettio
-    ports:
-      - 4000:4000
     restart: unless-stopped
     volumes:
       - jackettio-data:/data
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.jackettio.entrypoints=web,websecure"
-      - "traefik.http.routers.jackettio.rule=Host(`${ACME_DOMAIN:-}`)"
-      - "traefik.http.routers.jackettio.tls=true"
-      - "traefik.http.routers.jackettio.tls.certresolver=letsencryptresolver"
     
 networks:
   jackettio:

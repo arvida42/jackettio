@@ -1,0 +1,7 @@
+version: "3.3"
+
+services:
+
+  jackett:
+    ports:
+      - 9117:9117

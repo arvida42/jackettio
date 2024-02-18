@@ -1,0 +1,11 @@
+version: "3.3"
+
+services:
+
+  jackettio:
+    ports:
+      - 4000:4000
+
+  jackett:
+    ports:
+      - 9117:9117

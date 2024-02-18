@@ -2,6 +2,21 @@ version: "3.3"
 
 services:
 
+  jackettio:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.jackettio.entrypoints=web,websecure"
+      - "traefik.http.routers.jackettio.rule=Host(`${ACME_DOMAIN:-}`)"
+      - "traefik.http.routers.jackettio.tls=true"
+      - "traefik.http.routers.jackettio.tls.certresolver=letsencryptresolver"
+    networks:
+      - traefik
+
+  jackett:
+    ports:
+      - 9117:9117
+
   traefik:
     image: "traefik:v2.10"
     container_name: "traefik"
@@ -19,12 +34,16 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
     volumes:
       # To persist certificates
       - letsencrypt:/letsencrypt
       # So that Traefik can listen to the Docker events
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - traefik
+
+networks:
+  traefik:
 
 volumes:
   letsencrypt:
