@@ -1,3 +1,4 @@
+import {createHash} from 'crypto';
 import {ERROR} from './const.js';
 import {wait} from '../util.js';
 
@@ -51,6 +52,10 @@ export default class AllDebrid {
     const query = {link: file.url};
     const res = await this.#request('GET', '/link/unlock', {query});
     return res.data.link;
+  }
+
+  async getUserHash(){
+    return createHash('md5').update(this.#apiKey).digest('hex');
   }
 
   async #getFilesFromTorrent(id){

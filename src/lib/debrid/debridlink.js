@@ -1,3 +1,4 @@
+import {createHash} from 'crypto';
 import {ERROR} from './const.js';
 import {wait} from '../util.js';
 
@@ -47,6 +48,10 @@ export default class DebridLink {
 
   async getDownload(file){
     return file.url;
+  }
+
+  async getUserHash(){
+    return createHash('md5').update(this.#apiKey).digest('hex');
   }
 
   async #getFilesFromTorrent(torrent){
