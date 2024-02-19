@@ -63,16 +63,16 @@ export default class AllDebrid {
     const query = {id};
     let torrent = (await this.#request('GET', '/magnet/status', {query})).data.magnets;
 
-    let maxTime = new Date(new Date().getTime() + 30e3);
-    while(torrent.status != 'Ready' && new Date() < maxTime){
+    // let maxTime = new Date(new Date().getTime() + 30e3);
+    // while(torrent.status != 'Ready' && new Date() < maxTime){
 
-      await wait(5000);
+    //   await wait(5000);
 
-      try {
-        torrent = (await this.#request('GET', '/magnet/status', {query})).data.magnets;
-      }catch(err){}
+    //   try {
+    //     torrent = (await this.#request('GET', '/magnet/status', {query})).data.magnets;
+    //   }catch(err){}
 
-    }
+    // }
 
     if(torrent.status != 'Ready'){
       throw new Error(ERROR.NOT_READY);

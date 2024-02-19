@@ -56,17 +56,17 @@ export default class DebridLink {
 
   async #getFilesFromTorrent(torrent){
 
-    let maxTime = new Date(new Date().getTime() + 30e3);
-    while(torrent.downloadPercent < 100 && new Date() < maxTime){
+    // let maxTime = new Date(new Date().getTime() + 30e3);
+    // while(torrent.downloadPercent < 100 && new Date() < maxTime){
 
-      await wait(5000);
+    //   await wait(5000);
 
-      try {
-        const res = request('GET', `/seedbox/list?id=${torrent.id}`);
-        torrent = res.value[0];
-      }catch(err){}
+    //   try {
+    //     const res = request('GET', `/seedbox/list?id=${torrent.id}`);
+    //     torrent = res.value[0];
+    //   }catch(err){}
 
-    }
+    // }
 
     if(torrent.downloadPercent < 100){
       throw new Error(ERROR.NOT_READY);
