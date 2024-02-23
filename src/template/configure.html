@@ -86,11 +86,20 @@
           const debrid = ref({});
           const error = ref('');
 
+          if(config.userConfig){
+            try {
+              const savedUserConfig = JSON.parse(atob(config.userConfig));
+              Object.assign(defaultUserConfig, savedUserConfig);
+              debrid.value = debrids.find(debrid => debrid.id == savedUserConfig.debridId) || {};
+              debrid.value.configFields.forEach(field => field.value = savedUserConfig[field.name] || null);
+            }catch(err){}
+          }
+
           const form = {
             maxTorrents: defaultUserConfig.maxTorrents,
             priotizePackTorrents: defaultUserConfig.priotizePackTorrents,
             excludeKeywords: defaultUserConfig.excludeKeywords.join(','),
-            debridId: '',
+            debridId: defaultUserConfig.debridId || '',
             sortCached: defaultUserConfig.sortCached,
             sortUncached: defaultUserConfig.sortUncached,
             forceCacheNextEpisode: defaultUserConfig.forceCacheNextEpisode

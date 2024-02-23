@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
   res.end();
 });
 
-app.get('/configure', async(req, res) => {
+app.get('/:userConfig?/configure', async(req, res) => {
   let template = readFileSync(`./src/template/configure.html`).toString();
   const templateConfig = {
     debrids: await debrid.list(),
@@ -39,6 +39,7 @@ app.get('/configure', async(req, res) => {
       version: addon.version,
       name: addon.name
     },
+    userConfig: req.params.userConfig || '',
     defaultUserConfig: config.defaultUserConfig,
     qualities: config.qualities,
     sorts: config.sorts
