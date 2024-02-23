@@ -30,6 +30,7 @@ export async function getTorrents(metaInfos, userConfig, debridInstance){
 
     let torrents = [];
     let infos = {};
+    let startDate = new Date();
 
     console.log(`${stremioId} : Searching torrents ...`);
 
@@ -41,12 +42,16 @@ export async function getTorrents(metaInfos, userConfig, debridInstance){
       return true;
     };
 
+    const indexers = (await jackett.getIndexers()).filter(indexer => indexer.searching[type].available);
+    console.log(`${stremioId} : ${indexers.length} indexers available : ${indexers.map(indexer => indexer.title).join(', ')}`);
+
     if(type == 'movie'){
 
       infos = await meta.getMovieById(id);
-      torrents = await jackett.searchMovieTorrents(infos);
+      const promises = indexers.map(indexer => jackett.searchMovieTorrents({...infos, indexer: indexer.id}).catch(err => []));
+      torrents = [].concat(...(await Promise.all(promises)));
 
-      console.log(`${stremioId} : ${torrents.length} torrents found`);
+      console.log(`${stremioId} : ${torrents.length} torrents found in ${(new Date() - startDate) / 1000}s`);
 
       torrents = torrents.filter(filterSearch).sort(sortBy(...sortSearch)).slice(0, maxTorrents);
 
@@ -54,14 +59,15 @@ export async function getTorrents(metaInfos, userConfig, debridInstance){
 
       infos = await meta.getEpisodeById(id, season, episode);
 
-      const [episodesTorrents, packsTorrents] = await Promise.all([
-        jackett.searchEpisodeTorrents(infos).then(items => items.filter(filterSearch)),
-        jackett.searchSeasonTorrents(infos).then(items => items.filter(torrent => filterSearch(torrent) && parseWords(torrent.name.toUpperCase()).includes(`S${numberPad(season)}`)))
-      ]);
+      const episodesPromises = indexers.map(indexer => jackett.searchEpisodeTorrents({...infos, indexer: indexer.id}).catch(err => []));
+      const packsPromises = indexers.map(indexer => jackett.searchSeasonTorrents({...infos, indexer: indexer.id}).catch(err => []));
+
+      const episodesTorrents = [].concat(...(await Promise.all(episodesPromises))).filter(filterSearch);
+      const packsTorrents = [].concat(...(await Promise.all(packsPromises))).filter(torrent => filterSearch(torrent) && parseWords(torrent.name.toUpperCase()).includes(`S${numberPad(season)}`));
 
       torrents = [].concat(episodesTorrents, packsTorrents);
 
-      console.log(`${stremioId} : ${torrents.length} torrents found`);
+      console.log(`${stremioId} : ${torrents.length} torrents found in ${(new Date() - startDate) / 1000}s`);
 
       torrents = torrents.filter(filterSearch).sort(sortBy(...sortSearch)).slice(0, maxTorrents);
 
@@ -72,21 +78,38 @@ export async function getTorrents(metaInfos, userConfig, debridInstance){
 
     }
 
-    console.log(`${stremioId} : ${torrents.length} torrents found after first filter`);
+    console.log(`${stremioId} : ${torrents.length} torrents filtered, get torrents infos ...`);
+    startDate = new Date();
 
     const limit = pLimit(5);
     torrents = await Promise.all(torrents.map(torrent => limit(async () => {
+
+      const startInfosDate = new Date();
       try {
-        torrent.infos = await torrentInfos.get(torrent);
+
+        torrent.infos = await Promise.race([
+          torrentInfos.get(torrent),
+          wait(33e3).then(() => Promise.reject(new Error(`Torrent infos timeout`)))
+        ]);
         return torrent;
+
       }catch(err){
-        console.log(`Failed getting torrent infos for ${torrent.id} ${torrent.link}`, err);
+
+        console.log(`${stremioId} Failed getting torrent infos for ${torrent.id} from indexer ${torrent.indexerId}`);
+        console.log(`${stremioId} ${torrent.link.replace(/apikey=[a-z0-9\-]+/, 'apikey=****')}`, err);
         return false;
+
+      }finally{
+
+        const duration = new Date() - startInfosDate;
+        if(duration > 10e3)console.log(`${stremioId} : Slow (${duration / 1000}s) indexer detected (${torrent.indexerId}) when getting torrent infos`);
+
       }
     })));
-    torrents = torrents.filter((torrent, index) => torrent && torrents.findIndex(t => t.infos.infoHash == torrent.infos.infoHash) === index);
+    torrents = torrents.filter(torrent => torrent && torrent.infos)
+      .filter((torrent, index, items) => items.findIndex(t => t.infos.infoHash == torrent.infos.infoHash) === index);
 
-    console.log(`${stremioId} : ${torrents.length} torrents filtered`);
+    console.log(`${stremioId} : ${torrents.length} torrents infos found in ${(new Date() - startDate) / 1000}s`);
 
     if(torrents.length == 0){
       throw new Error(`No torrent infos for type ${type} and id ${stremioId}`);

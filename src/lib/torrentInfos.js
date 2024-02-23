@@ -26,60 +26,74 @@ export async function cleanTorrentFolder(){
   }
 }
 
-export async function get({link, id}){
+export async function get({link, id, magnetUrl, infoHash, name, size, type}){
 
   try {
     return await getById(id);
   }catch(err){}
 
-  let infos = null;
-  let magnetUrl = '';
+  let parseInfos = null;
   let torrentLocation = '';
 
-  if(link.startsWith('http')){
+  if(magnetUrl && infoHash && name && size > 0 && type){
 
-    try {
+    parseInfos = {
+      infoHash, 
+      name, 
+      length: size, 
+      private: (type == 'private')
+    };
 
-      const buffer = await downloadTorrentFile({link, id});
-      infos = await parseTorrent(new Uint8Array(buffer));
+  }else{
 
-      if(!infos.private){
-        magnetUrl = toMagnetURI(infos);
+    if(link.startsWith('http')){
+
+      try {
+
+        torrentLocation = `${TORRENT_FOLDER}/${id}.torrent`;
+        const buffer = await downloadTorrentFile({link, id, torrentLocation});
+        parseInfos = await parseTorrent(new Uint8Array(buffer));
+
+        if(!parseInfos.private){
+          magnetUrl = toMagnetURI(parseInfos);
+        }
+
+      }catch(err){
+
+        torrentLocation = '';
+        if(err.redirection && err.redirection.startsWith('magnet')){
+          link = err.redirection;
+        }else{
+          throw err;
+        }
+
       }
 
-    }catch(err){
+    }
 
-      if(err.redirection && err.redirection.startsWith('magnet')){
-        link = err.redirection;
-      }else{
-        throw err;
-      }
+    if(link.startsWith('magnet')){
+
+      parseInfos = await parseTorrent(link);
+      magnetUrl = link;
 
     }
 
   }
 
-  if(link.startsWith('magnet')){
-
-    infos = await parseTorrent(link);
-    magnetUrl = link;
-
-  }
-
-  if(!infos){
+  if(!parseInfos){
     throw new Error(`Invalid link ${link}`);
   }
 
-  infos = {
+  const torrentInfos = {
     id,
     link,
-    magnetUrl,
+    magnetUrl: magnetUrl || '',
     torrentLocation,
-    infoHash: infos.infoHash || '',
-    name: infos.name || '',
-    private: infos.private || false,
-    size: infos.length || -1,
-    files: (infos.files || []).map(file => {
+    infoHash: parseInfos.infoHash || '',
+    name: parseInfos.name || '',
+    private: parseInfos.private || false,
+    size: parseInfos.length || -1,
+    files: (parseInfos.files || []).map(file => {
       return {
         name: file.name,
         size: file.length
@@ -87,9 +101,9 @@ export async function get({link, id}){
     })
   };
 
-  await setById(id, infos);
+  await setById(id, torrentInfos);
 
-  return infos;
+  return torrentInfos;
 
 };
 
@@ -127,7 +141,7 @@ export async function getTorrentFile(infos){
 
 }
 
-async function downloadTorrentFile({link, id}){
+async function downloadTorrentFile({link, id, torrentLocation}){
 
   const res = await fetch(link, {redirect: 'manual'});
 
@@ -135,7 +149,7 @@ async function downloadTorrentFile({link, id}){
     throw Object.assign(new Error(`Redirection detected ...`), {redirection: res.headers.get('location')});
   }
 
-  if(!res.headers.get('content-type').includes('application/x-bittorrent')){
+  if(!(res.headers.get('content-type') || '').includes('application/x-bittorrent')){
     throw new Error(`Invalid content-type: ${res.headers.get('content-type')}`);
   }
 
@@ -144,7 +158,7 @@ async function downloadTorrentFile({link, id}){
   }
 
   const buffer = await res.arrayBuffer();
-  writeFile(`${TORRENT_FOLDER}/${id}.torrent`, new Uint8Array(buffer));
+  writeFile(torrentLocation, new Uint8Array(buffer));
   return buffer;
 
 }
