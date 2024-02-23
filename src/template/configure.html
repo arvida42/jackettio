@@ -6,13 +6,22 @@
     <title>jackettio</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <style>
-      .container {max-width: 600px}
+      #app {
+        background-color: #ffffff;
+        opacity: 1;
+        background-image:  radial-gradient(#b3b3b3 0.7000000000000001px, transparent 0.7000000000000001px), radial-gradient(#b3b3b3 0.7000000000000001px, #ffffff 0.7000000000000001px);
+        background-size: 28px 28px;
+        background-position: 0 0,14px 14px;
+      }
+      .container {
+        max-width: 600px;
+      }
     </style>
   </head>
   <body id="app">
     <div class="container my-5">
-      <h1 class="mb-5">{{addon.name}} <small>v{{addon.version}}</small></h1>
-      <form>
+      <h1 class="mb-4">{{addon.name}} <span style="font-size:.6em">v{{addon.version}}</span></h1>
+      <form class="shadow p-3 bg-white z-3 rounded">
         <div class="mb-3">
           <label>Exclude keywords in torrent name</label>
           <input type="text" v-model="form.excludeKeywords" placeholder="keyword1,keyword2" class="form-control">
@@ -70,6 +79,9 @@
         <div class="mb-3 d-flex align-items-center">
           <button @click="configure" type="button" class="btn btn-primary" :disabled="!debrid.id">Install</button>
           <div v-if="error" class="text-danger ms-2">{{error}}</div>
+          <div class="ms-auto">
+            <a v-if="manifestUrl" :href="manifestUrl">Stremio Link</a>
+          </div>
         </div>
       </form>
     </div>
@@ -85,6 +97,7 @@
 
           const debrid = ref({});
           const error = ref('');
+          const manifestUrl = ref('');
 
           if(config.userConfig){
             try {
@@ -106,7 +119,7 @@
           };
           qualities.forEach(quality => quality.checked = defaultUserConfig.qualities.includes(quality.value));
 
-          function configure(){
+          async function configure(){
             try {
               error.value = '';
               const userConfig = Object.assign({}, form);
@@ -125,7 +138,8 @@
                 throw new Error(`Quality is required`);
               }
 
-              document.location.href=`stremio://${document.location.host}/${btoa(JSON.stringify(userConfig))}/manifest.json`;
+              manifestUrl.value = `stremio://${document.location.host}/${btoa(JSON.stringify(userConfig))}/manifest.json`;
+              document.location.href = manifestUrl.value;
             }catch(err){
               error.value = err.message || err;
             }
@@ -139,7 +153,8 @@
             sorts,
             form,
             configure,
-            error
+            error,
+            manifestUrl
           }
         }
       }).mount('#app')
