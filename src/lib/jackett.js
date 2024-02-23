@@ -13,8 +13,8 @@ export async function searchMovieTorrents({name, year}){
       '/api/v2.0/indexers/all/results/torznab/api',
       {t: 'movie',q: name, year: year}
     );
-    items = normalizeItems(res.item || []);
-    cache.set(`jackettItems:movie:${name}:${year}`, items, {ttl: items.length > 0 ? 3600*36 : 300});
+    items = normalizeItems(res?.rss?.channel?.item || []);
+    cache.set(`jackettItems:movie:${name}:${year}`, items, {ttl: items.length > 0 ? 3600*36 : 60});
   }
 
   return items;
@@ -30,8 +30,8 @@ export async function searchSeasonTorrents({name, year, season}){
       '/api/v2.0/indexers/all/results/torznab/api',
       {t: 'tvsearch',q: `${name} S${numberPad(season)}`}
     );
-    items = normalizeItems(res.item || []);
-    cache.set(`jackettItems:season:${name}:${year}:${season}`, items, {ttl: items.length > 0 ? 3600*36 : 300});
+    items = normalizeItems(res?.rss?.channel?.item || []);
+    cache.set(`jackettItems:season:${name}:${year}:${season}`, items, {ttl: items.length > 0 ? 3600*36 : 60});
   }
 
   return items;
@@ -47,11 +47,24 @@ export async function searchEpisodeTorrents({name, year, season, episode}){
       '/api/v2.0/indexers/all/results/torznab/api',
       {t: 'tvsearch',q: `${name} S${numberPad(season)}E${numberPad(episode)}`}
     );
-    items = normalizeItems(res.item || []);
-    cache.set(`jackettItems:episode:${name}:${year}:${season}:${episode}`, items, {ttl: items.length > 0 ? 3600*36 : 300});
+    items = normalizeItems(res?.rss?.channel?.item || []);
+    cache.set(`jackettItems:episode:${name}:${year}:${season}:${episode}`, items, {ttl: items.length > 0 ? 3600*36 : 60});
   }
 
   return items;
+
+}
+
+export async function getIndexers(){
+
+  const res = await jackettApi(
+    '/api/v2.0/indexers/all/results/torznab/api',
+    {t: 'indexers', configured: 'true'}
+  );
+
+  const indexers = res?.indexers?.indexer || [];
+
+  return indexers.title ? [indexers] : indexers;
 
 }
 
@@ -76,7 +89,7 @@ async function jackettApi(path, query){
     throw new Error(`jackettApi: ${url.replace(/apikey=[a-z0-9\-]+/, 'apikey=****')} : ${data.error?.$?.description || data.error}`);
   }
 
-  return data.rss.channel;
+  return data;
 
 }
 
