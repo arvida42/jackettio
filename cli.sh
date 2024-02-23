@@ -9,6 +9,10 @@ if ! command -v docker >/dev/null 2>&1; then
     exit 1
 fi
 
+if ! command -v curl >/dev/null 2>&1; then
+    apt-get update && apt-get install curl -y
+fi
+
 COMMAND="$1"
 RAW_GITHUB_URL="https://raw.githubusercontent.com/arvida42/jackettio/master"
 DIR=$(dirname "$0")
@@ -80,8 +84,8 @@ case "$COMMAND" in
         ;;
     "update")
         importConfig
-        downloadComposeFiles
         runDockerCompose down
+        downloadComposeFiles
         runDockerCompose pull
         runDockerCompose up -d
         exit 0
