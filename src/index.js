@@ -22,7 +22,7 @@ app.set('trust proxy', 'loopback');
 app.use(express.static(path.join(import.meta.dirname, 'static')));
 
 app.use((req, res, next) => {
-  console.log(req.path);
+  console.log(`${req.method} ${req.path.replace(/\/eyJ[\w\=]+/g, '/*******************')}`);
   next();
 });
 
