@@ -72,7 +72,8 @@ export default class AllDebrid {
         name: file.filename,
         size: file.size,
         id: `${torrent.id}:${index}`,
-        url: file.link
+        url: file.link,
+        ready: true
       };
     });
 

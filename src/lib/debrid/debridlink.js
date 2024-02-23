@@ -47,7 +47,13 @@ export default class DebridLink {
   }
 
   async getDownload(file){
+
+    if(!file.ready){
+      throw new Error(ERROR.NOT_READY);
+    }
+
     return file.url;
+
   }
 
   async getUserHash(){
@@ -56,7 +62,7 @@ export default class DebridLink {
 
   async #getFilesFromTorrent(torrent){
 
-    if(torrent.downloadPercent < 100){
+    if(!torrent.files.length){
       throw new Error(ERROR.NOT_READY);
     }
 
@@ -65,7 +71,8 @@ export default class DebridLink {
         name: file.name,
         size: file.size,
         id: `${torrent.id}:${index}`,
-        url: file.downloadUrl
+        url: file.downloadUrl,
+        ready: file.downloadPercent === 100
       };
     });
 
