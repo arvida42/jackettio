@@ -45,9 +45,16 @@
           <small class="text-muted">A high number can significantly slow down the request</small>
         </div>
         <div class="mb-3">
-          <label>Force include series pack in search</label>
+          <label>Force include <small>n</small> series pack in search</label>
           <input type="number" v-model="form.priotizePackTorrents" min="1" max="30" class="form-control">
-          <small class="text-muted">This option could increase chance of caching torrents</small>
+          <small class="text-muted">This could increase the chance of cached torrents. 2 is a good number</small>
+        </div>
+        <div class="mb-3 d-flex flex-row">
+          <input class="form-check-input me-1" type="checkbox" v-model="form.priotizePackTorrents" id="priotizePackTorrents">
+          <label for="priotizePackTorrents" class="d-flex flex-column">
+            <span>Prepare the next episode on Debrid. (Recommended)</span>
+            <small class="text-muted">Automatically add the next espisode on debrid when not avaiable to instantally stream it later.</small>
+          </label>
         </div>
         <div class="mb-3">
           <label>Debrid provider:</label>
@@ -85,7 +92,8 @@
             excludeKeywords: defaultUserConfig.excludeKeywords.join(','),
             debridId: '',
             sortCached: defaultUserConfig.sortCached,
-            sortUncached: defaultUserConfig.sortUncached
+            sortUncached: defaultUserConfig.sortUncached,
+            forceCacheNextEpisode: defaultUserConfig.forceCacheNextEpisode
           };
           qualities.forEach(quality => quality.checked = defaultUserConfig.qualities.includes(quality.value));
 

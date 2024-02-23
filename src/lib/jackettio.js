@@ -89,7 +89,7 @@ export async function getTorrents(metaInfos, userConfig, debridInstance){
     console.log(`${stremioId} : ${torrents.length} torrents filtered`);
 
     if(torrents.length == 0){
-      throw new Error(`No torrent infos for type ${type} and id ${id}`);
+      throw new Error(`No torrent infos for type ${type} and id ${stremioId}`);
     }
 
     if(debridInstance){
@@ -108,10 +108,6 @@ export async function getTorrents(metaInfos, userConfig, debridInstance){
     }
 
     return torrents;
-
-  }catch(err){
-
-    throw err;
 
   }finally{
 
@@ -140,11 +136,28 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
 
   // Cache next episode
   if(type == 'series'){
-    let nextEpisodeIndex = metaInfos.episodes.findIndex(e => e.episode == episode && e.season == season) + 1;
-    if(metaInfos.episodes[nextEpisodeIndex]){
-      meta.getEpisodeById(id, metaInfos.episodes[nextEpisodeIndex].season, metaInfos.episodes[nextEpisodeIndex].episode)
+    const nextEpisodeIndex = metaInfos.episodes.findIndex(e => e.episode == episode && e.season == season) + 1;
+    const nextEpisode = metaInfos.episodes[nextEpisodeIndex] || false;
+    if(nextEpisode){
+      meta.getEpisodeById(id, nextEpisode.season, nextEpisode.episode)
         .then(nextMetaInfos => getTorrents(nextMetaInfos, userConfig, debridInstance))
-        .catch(console.log);
+        .then(nextTorrents => {
+          // Cache next episode on debrid when not cached
+          if(userConfig.forceCacheNextEpisode && nextTorrents.length && !nextTorrents.find(torrent => torrent.isCached)){
+            console.log(`${stremioId} : Force cache next episode (${nextEpisode.episode}) on debrid`);
+            const bestTorrent = nextTorrents[0];
+            if(bestTorrent.infos.magnetUrl){
+              return debridInstance.getFilesFromMagnet(bestTorrent.infos.magnetUrl);
+            }else{
+              return torrentInfos.getTorrentFile(bestTorrent.infos).then(buffer => debridInstance.getFilesFromBuffer(buffer));
+            }
+          }
+        })
+        .catch(err => {
+          if(err.message != debrid.ERROR.NOT_READY){
+            console.log('cache next episode:', err);
+          }
+        });
     }
   }
 
@@ -183,7 +196,7 @@ export async function getDownload(userConfig, type, stremioId, torrentId){
     if(infos.magnetUrl){
       files = await debridInstance.getFilesFromMagnet(infos.magnetUrl);
     }else{
-      const buffer = torrentInfos.getTorrentFile(infos);
+      const buffer = await torrentInfos.getTorrentFile(infos);
       files = await debridInstance.getFilesFromBuffer(buffer);
     }
 
@@ -212,10 +225,6 @@ export async function getDownload(userConfig, type, stremioId, torrentId){
     }
 
     throw new Error(`No download for type ${type} and ID ${torrentId}`);
-
-  }catch(err){
-
-    throw err;
 
   }finally{
 

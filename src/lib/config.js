@@ -10,6 +10,7 @@ export default {
     excludeKeywords: [],
     maxTorrents: 8,
     priotizePackTorrents: 2,
+    forceCacheNextEpisode: false,
     sortCached: [['quality', true], ['size', true]],
     sortUncached: [['seeders', true]]
   },
