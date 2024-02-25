@@ -1,8 +1,9 @@
 import debridlink from "./debrid/debridlink.js";
 import alldebrid from "./debrid/alldebrid.js";
+import realdebrid from './debrid/realdebrid.js';
 export {ERROR} from './debrid/const.js';
 
-const debrid = {debridlink, alldebrid};
+const debrid = {debridlink, alldebrid, realdebrid};
 
 export function instance(userConfig){
 
