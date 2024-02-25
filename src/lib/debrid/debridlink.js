@@ -26,11 +26,22 @@ export default class DebridLink {
     this.#ip = userConfig.ip || '';
   }
 
-  async getCachedTorrents(torrents){
+  async getTorrentsCached(torrents){
     const hashList = torrents.map(torrent => torrent.infos.infoHash).filter(Boolean);
     const query = {url: hashList.join(',')};
     const res = await this.#request('GET', '/seedbox/cached', {query});
     return torrents.filter(torrent => res.value[torrent.infos.infoHash]);
+  }
+
+  async getProgressTorrents(torrents){
+    const res = await this.#request('GET', '/seedbox/list');
+    return res.value.reduce((progress, torrent) => {
+      progress[torrent.hashString] = {
+        percent: torrent.downloadPercent || 0,
+        speed: torrent.downloadSpeed || 0
+      }
+      return progress;
+    }, {});
   }
 
   async getFilesFromMagnet(url){
@@ -80,7 +91,8 @@ export default class DebridLink {
 
   async #request(method, path, opts){
 
-    opts = Object.assign(opts || {}, {
+    opts = opts || {};
+    opts = Object.assign(opts, {
       method,
       headers: Object.assign(opts.headers || {}, {
         'user-agent': 'Stremio',

@@ -24,12 +24,23 @@ export default class AllDebrid {
     this.#apiKey = userConfig.debridApiKey;
   }
 
-  async getCachedTorrents(torrents){
+  async getTorrentsCached(torrents){
     const hashList = torrents.map(torrent => torrent.infos.infoHash).filter(Boolean);
     const body = new FormData();
     hashList.forEach(hash => body.append('magnets[]', hash));
     const res = await this.#request('POST', '/magnet/instant', {body});
     return torrents.filter(torrent => res.data.magnets.find(magnet => magnet.hash == torrent.infos.infoHash && magnet.instant));
+  }
+
+  async getProgressTorrents(torrents){
+    const res = await this.#request('GET', '/magnet/status');
+    return res.data.magnets.reduce((progress, magnet) => {
+      progress[magnet.hash] = {
+        percent: magnet.processingPerc || 0,
+        speed: magnet.downloadSpeed || 0
+      }
+      return progress;
+    }, {});
   }
 
   async getFilesFromMagnet(url){
@@ -81,7 +92,8 @@ export default class AllDebrid {
 
   async #request(method, path, opts){
 
-    opts = Object.assign(opts || {}, {
+    opts = opts || {};
+    opts = Object.assign(opts, {
       method,
       headers: Object.assign({
         'user-agent': 'jackettio',

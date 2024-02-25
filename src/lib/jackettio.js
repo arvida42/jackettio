@@ -127,7 +127,7 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
     if(debridInstance){
 
-      const cachedTorrents = (await debridInstance.getCachedTorrents(torrents)).map(torrent => {
+      const cachedTorrents = (await debridInstance.getTorrentsCached(torrents)).map(torrent => {
         torrent.isCached = true;
         return torrent;
       });
@@ -137,6 +137,11 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
       torrents = [].concat(cachedTorrents.sort(sortBy(...sortCached)))
                    .concat(uncachedTorrents.sort(sortBy(...sortUncached)));
+
+      try {
+        const progress = await debridInstance.getProgressTorrents(torrents);
+        torrents.forEach(torrent => torrent.progress = progress[torrent.infos.infoHash] || null);
+      }catch(err){}
 
     }
 
@@ -202,9 +207,13 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
   }
 
   return torrents.map(torrent => {
+    let title = `${torrent.name}\n${bytesToSize(torrent.size)} - ${torrent.seeders} seeders`;
+    if(torrent.progress){
+      title += ` - ${torrent.progress.percent}% - ${bytesToSize(torrent.progress.speed)}/s`
+    }
     return {
       name: `[${debridInstance.shortName}${torrent.isCached ? '+' : ''}] jackettio`,
-      title: `${torrent.name}\n${bytesToSize(torrent.size)} - ${torrent.seeders} seeders`,
+      title,
       url: `${publicUrl}/${btoa(JSON.stringify(userConfig))}/download/${type}/${stremioId}/${torrent.id}`
     };
   });
