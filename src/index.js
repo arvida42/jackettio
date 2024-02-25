@@ -5,6 +5,7 @@ import config from './lib/config.js';
 import cache from './lib/cache.js';
 import path from 'path';
 import * as debrid from './lib/debrid.js';
+import {getIndexers} from './lib/jackett.js';
 import * as jackettio from "./lib/jackettio.js";
 import {cleanTorrentFolder, createTorrentFolder} from './lib/torrentInfos.js';
 
@@ -42,7 +43,8 @@ app.get('/:userConfig?/configure', async(req, res) => {
     userConfig: req.params.userConfig || '',
     defaultUserConfig: config.defaultUserConfig,
     qualities: config.qualities,
-    sorts: config.sorts
+    sorts: config.sorts,
+    indexers: (await getIndexers()).map(indexer => ({id: indexer.id, label: indexer.title}))
   };
   return res.send(template.replace('/** import-config */', `const config = ${JSON.stringify(templateConfig, null, 2)}`));
 });

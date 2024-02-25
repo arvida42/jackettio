@@ -54,8 +54,14 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
       return true;
     };
 
-    const indexers = (await jackett.getIndexers()).filter(indexer => indexer.searching[type].available);
-    console.log(`${stremioId} : ${indexers.length} indexers available : ${indexers.map(indexer => indexer.title).join(', ')}`);
+    const indexers = (await jackett.getIndexers()).filter(indexer => {
+      return indexer.searching[type].available 
+        && (
+          userConfig.indexers.includes(indexer.id) 
+          || userConfig.indexers.includes('all')
+        )
+    });
+    console.log(`${stremioId} : ${indexers.length} indexers selected : ${indexers.map(indexer => indexer.title).join(', ')}`);
 
     if(type == 'movie'){
 

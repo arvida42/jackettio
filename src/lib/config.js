@@ -12,7 +12,8 @@ export default {
     priotizePackTorrents: 2,
     forceCacheNextEpisode: false,
     sortCached: [['quality', true], ['size', true]],
-    sortUncached: [['seeders', true]]
+    sortUncached: [['seeders', true]],
+    indexers: ['all']
   },
   qualities: [
     {value: 0, label: 'Unknown'},

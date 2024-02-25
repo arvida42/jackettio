@@ -22,10 +22,14 @@
     <div class="container my-5">
       <h1 class="mb-4">{{addon.name}} <span style="font-size:.6em">v{{addon.version}}</span></h1>
       <form class="shadow p-3 bg-white z-3 rounded">
-        <div class="mb-3">
-          <label>Exclude keywords in torrent name</label>
-          <input type="text" v-model="form.excludeKeywords" placeholder="keyword1,keyword2" class="form-control">
-          <small class="text-muted">Example: cam,xvid</small>
+        <div class="mb-3" v-if="indexers.length > 1">
+          <label>Indexers:</label>
+          <div class="d-flex">
+            <div v-for="indexer in indexers" class="me-3">
+              <input class="form-check-input me-1" type="checkbox" v-model="indexer.checked" :id="indexer.label">
+              <label class="form-check-label" :for="indexer.label">{{indexer.label}}</label>
+            </div>
+          </div>
         </div>
         <div class="mb-3">
           <label>Qualities:</label>
@@ -35,6 +39,11 @@
               <label class="form-check-label" :for="quality.label">{{quality.label}}</label>
             </div>
           </div>
+        </div>
+        <div class="mb-3">
+          <label>Exclude keywords in torrent name</label>
+          <input type="text" v-model="form.excludeKeywords" placeholder="keyword1,keyword2" class="form-control">
+          <small class="text-muted">Example: cam,xvid</small>
         </div>
         <div class="mb-3">
           <label>Cached torrents sorting</label>
@@ -93,7 +102,7 @@
       createApp({
         setup() {
 
-          const {addon, debrids, defaultUserConfig, qualities, sorts} = config;
+          const {addon, debrids, defaultUserConfig, qualities, sorts, indexers} = config;
 
           const debrid = ref({});
           const error = ref('');
@@ -118,12 +127,14 @@
             forceCacheNextEpisode: defaultUserConfig.forceCacheNextEpisode
           };
           qualities.forEach(quality => quality.checked = defaultUserConfig.qualities.includes(quality.value));
+          indexers.forEach(indexer => indexer.checked = defaultUserConfig.indexers.includes(indexer.id) || defaultUserConfig.indexers.includes('all'));
 
           async function configure(){
             try {
               error.value = '';
               const userConfig = Object.assign({}, form);
               userConfig.qualities = qualities.filter(quality => quality.checked).map(quality => quality.value);
+              userConfig.indexers = indexers.filter(indexer => indexer.checked).map(indexer => indexer.value);
               userConfig.excludeKeywords = form.excludeKeywords.split(',').filter(Boolean);
               debrid.value.configFields.forEach(field => {
                 if(field.required && !field.value)throw new Error(`${field.label} is required`);
@@ -136,6 +147,10 @@
 
               if(!userConfig.qualities.length){
                 throw new Error(`Quality is required`);
+              }
+
+              if(!userConfig.indexers.length && indexers.length){
+                throw new Error(`Indexer is required`);
               }
 
               manifestUrl.value = `stremio://${document.location.host}/${btoa(JSON.stringify(userConfig))}/manifest.json`;
@@ -154,7 +169,8 @@
             form,
             configure,
             error,
-            manifestUrl
+            manifestUrl,
+            indexers
           }
         }
       }).mount('#app')
