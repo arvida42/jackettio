@@ -208,7 +208,7 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
 
   return torrents.map(torrent => {
     let title = `${torrent.name}\n${bytesToSize(torrent.size)} - ${torrent.seeders} seeders`;
-    if(torrent.progress){
+    if(torrent.progress && !torrent.isCached){
       title += ` - ${torrent.progress.percent}% - ${bytesToSize(torrent.progress.speed)}/s`
     }
     return {
