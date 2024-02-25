@@ -1,10 +1,23 @@
+import cache from './cache.js';
 
 export async function getMovieById(id){
-  const res = await fetch(`https://v3-cinemeta.strem.io/meta/movie/${id}.json`);
-  const {meta} = await res.json();
+
+  let meta = await cache.get(`meta:movie:${id}`);
+
   if(!meta){
-    throw new Error(`Meta not found for movie ${id}`);
+
+    const res = await fetch(`https://v3-cinemeta.strem.io/meta/movie/${id}.json`);
+    const json = await res.json();
+    meta = json.meta;
+
+    if(!meta){
+      throw new Error(`Meta not found for movie ${id}`);
+    }
+
+    await cache.set(`meta:movie:${id}`, meta, {ttl: 3600});
+
   }
+
   return {
     name: meta.name,
     year: parseInt(meta.releaseInfo),
@@ -13,14 +26,27 @@ export async function getMovieById(id){
     stremioId: id,
     id,
   };
+
 }
 
 export async function getEpisodeById(id, season, episode){
-  const res = await fetch(`https://v3-cinemeta.strem.io/meta/series/${id}.json`);
-  const {meta} = await res.json();
+
+  let meta = await cache.get(`meta:series:${id}`);
+
   if(!meta){
-    throw new Error(`Meta not found for episode ${id}`);
+
+    const res = await fetch(`https://v3-cinemeta.strem.io/meta/series/${id}.json`);
+    const json = await res.json();
+    meta = json.meta;
+
+    if(!meta){
+      throw new Error(`Meta not found for episode ${id}`);
+    }
+
+    await cache.set(`meta:series:${id}`, meta, {ttl: 3600});
+
   }
+
   return {
     name: meta.name,
     year: parseInt(`${meta.releaseInfo}`.split('-').shift()),
@@ -38,4 +64,5 @@ export async function getEpisodeById(id, season, episode){
       }
     })
   };
+
 }
