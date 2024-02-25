@@ -28,5 +28,24 @@ export default {
     {value: [['seeders', true]], label: 'By seeders'},
     {value: [['quality', true]], label: 'By quality'},
     {value: [['size', true]], label: 'By size'}
-  ]
+  ],
+  languages: [
+    {value: 'MULTI',      emoji: '🌎', pattern: /multi/i},
+    {value: 'arabic',     emoji: '🇦🇪', pattern: /arabic/i},
+    {value: 'german',     emoji: '🇩🇪', pattern: /german/i},
+    {value: 'english',    emoji: '🇺🇸', pattern: /(eng(lish)?)/i},
+    {value: 'spanish',    emoji: '🇪🇸', pattern: /spanish/i},
+    {value: 'french',     emoji: '🇫🇷', pattern: /french/i},
+    {value: 'dutch',      emoji: '🇳🇱', pattern: /dutch/i},
+    {value: 'italian',    emoji: '🇮🇹', pattern: /italian/i},
+    {value: 'korean',     emoji: '🇰🇷', pattern: /korean/i},
+    {value: 'portuguese', emoji: '🇵🇹', pattern: /portuguese/i},
+    {value: 'russian',    emoji: '🇷🇺', pattern: /rus(sian)?/i},
+    {value: 'swedish',    emoji: '🇸🇪', pattern: /swedish/i},
+    {value: 'tamil',      emoji: '🇮🇳', pattern: /tamil/i},
+    {value: 'turkish',    emoji: '🇹🇷', pattern: /turkish/i}
+  ].map(lang => {
+    lang.label = `${lang.emoji} ${lang.value.charAt(0).toUpperCase() + lang.value.slice(1)}`;
+    return lang;
+  })
 }

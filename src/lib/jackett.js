@@ -107,6 +107,7 @@ function normalizeItems(items){
       return obj;
     }, {});
     const quality = item.title.match(/(2160|1080|720|480|360)p/);
+    let languages = config.languages.filter(lang => item.title.match(lang.pattern));
     return {
       name: item.title,
       guid: item.guid,
@@ -119,7 +120,8 @@ function normalizeItems(items){
       infoHash: attr.infohash || '',
       magneturl: attr.magneturl || '', 
       type: item.type,
-      quality: quality ? parseInt(quality[1]) : 0
+      quality: quality ? parseInt(quality[1]) : 0,
+      languages: languages
     };
   });
 }

@@ -207,13 +207,17 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
   }
 
   return torrents.map(torrent => {
-    let title = `${torrent.name}\n${bytesToSize(torrent.size)} - ${torrent.seeders} seeders`;
+    let infos = [];
+    infos.push(bytesToSize(torrent.size), `${torrent.seeders} seeders`);
+    if(torrent.languages && torrent.languages.length){
+      infos.push((torrent.languages || []).map(language => language.emoji).join(' ') +' ');
+    }
     if(torrent.progress && !torrent.isCached){
-      title += ` - ${torrent.progress.percent}% - ${bytesToSize(torrent.progress.speed)}/s`
+      infos.push(`${torrent.progress.percent}%`, `${bytesToSize(torrent.progress.speed)}/s`);
     }
     return {
       name: `[${debridInstance.shortName}${torrent.isCached ? '+' : ''}] jackettio`,
-      title,
+      title: `${torrent.name}\n${infos.join(' - ')}`,
       url: `${publicUrl}/${btoa(JSON.stringify(userConfig))}/download/${type}/${stremioId}/${torrent.id}`
     };
   });
