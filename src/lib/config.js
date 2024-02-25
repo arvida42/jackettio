@@ -32,6 +32,7 @@ export default {
   languages: [
     {value: 'MULTI',      emoji: '🌎', pattern: /multi/i},
     {value: 'arabic',     emoji: '🇦🇪', pattern: /arabic/i},
+    {value: 'chinese',    emoji: '🇨🇳', pattern: /chinese/i},
     {value: 'german',     emoji: '🇩🇪', pattern: /german/i},
     {value: 'english',    emoji: '🇺🇸', pattern: /(eng(lish)?)/i},
     {value: 'spanish',    emoji: '🇪🇸', pattern: /spanish/i},
