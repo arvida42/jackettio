@@ -44,7 +44,7 @@ app.get('/:userConfig?/configure', async(req, res) => {
     defaultUserConfig: config.defaultUserConfig,
     qualities: config.qualities,
     sorts: config.sorts,
-    indexers: (await getIndexers()).map(indexer => ({id: indexer.id, label: indexer.title})),
+    indexers: (await getIndexers()).map(indexer => ({value: indexer.id, label: indexer.title})),
     passkey: {required: false},
     immulatableUserConfigKeys: config.immulatableUserConfigKeys
   };

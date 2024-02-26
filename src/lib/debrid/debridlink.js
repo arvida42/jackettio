@@ -121,6 +121,8 @@ export default class DebridLink {
         case 'badToken':
           throw new Error(ERROR.EXPIRED_API_KEY);
         case 'maxTorrent':
+        case 'torrentTooBig':
+        case 'freeServerOverload':
           throw new Error(ERROR.NOT_PREMIUM);
         default:
           throw new Error(`Invalid DL api result: ${JSON.stringify(data)}`);
