@@ -137,7 +137,7 @@ case "$COMMAND" in
         runDockerCompose up -d
         exit 0
         ;;
-    "reset-jackett-password")
+    "jackett-password")
         importConfig
         docker cp jackett:/config/Jackett/ServerConfig.json /tmp/ServerConfig.json > /dev/null
         createJackettPassword /tmp/ServerConfig.json
