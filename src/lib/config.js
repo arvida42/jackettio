@@ -20,17 +20,17 @@ export default {
   // The passkey pattern
   replacePasskeyPattern: process.env.REPLACE_PASSKEY_PATTERN || '[a-zA-Z0-9]+',
   // List of config keys that user can't configure
-  immulatableUserConfigKeys: (process.env.IMMULATABLE_USER_CONFIG_KEYS || '').split(','),
+  immulatableUserConfigKeys: commaListToArray(process.env.IMMULATABLE_USER_CONFIG_KEYS || ''),
 
   defaultUserConfig: {
-    qualities: (process.env.DEFAULT_QUALITIES || '0,720,1080').split(',').map(value => parseInt(value.trim())),
-    excludeKeywords: (process.env.DEFAULT_EXCLUDE_KEYWORDS || '').split(','),
+    qualities: commaListToArray(process.env.DEFAULT_QUALITIES || '0, 720, 1080').map(v => parseInt(v)),
+    excludeKeywords: commaListToArray(process.env.DEFAULT_EXCLUDE_KEYWORDS || ''),
     maxTorrents: parseInt(process.env.DEFAULT_MAX_TORRENTS || 8),
     priotizePackTorrents:  parseInt(process.env.DEFAULT_PRIOTIZE_PACK_TORRENTS || 2),
     forceCacheNextEpisode: (process.env.DEFAULT_FORCE_CACHE_NEXT_EPISODE || 'false') === 'true',
-    sortCached: (process.env.DEFAULT_SORT_CACHED || 'quality:true,size:true').split(',').map(sort => [sort.split(':')[0], sort.split(':')[1] == 'true']),
-    sortUncached: (process.env.DEFAULT_SORT_UNCACHED || 'seeders:true').split(',').map(sort => [sort.split(':')[0], sort.split(':')[1] == 'true']),
-    indexers: (process.env.DEFAULT_INDEXERS || 'all').split(','),
+    sortCached: sortCommaListToArray(process.env.DEFAULT_SORT_CACHED || 'quality:true, size:true'),
+    sortUncached: sortCommaListToArray(process.env.DEFAULT_SORT_UNCACHED || 'seeders:true'),
+    indexers: commaListToArray(process.env.DEFAULT_INDEXERS || 'all'),
     passkey: ''
   },
 
@@ -69,4 +69,15 @@ export default {
     lang.label = `${lang.emoji} ${lang.value.charAt(0).toUpperCase() + lang.value.slice(1)}`;
     return lang;
   })
+}
+
+function commaListToArray(str){
+  return str.split(',').map(str => str.trim()).filter(Boolean);
+}
+
+function sortCommaListToArray(str){
+  return commaListToArray(str).map(sort => {
+    const [key, reverse] = sort.split(':');
+    return [key.trim(), reverse.trim() == 'true'];
+  });
 }

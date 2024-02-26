@@ -28,7 +28,7 @@ async function getMetaInfos(type, stremioId){
   }
 }
 
-async function mergeDefaultUserConfig(userConfig){
+function mergeDefaultUserConfig(userConfig){
   config.immulatableUserConfigKeys.forEach(key => delete userConfig[key]);
   return Object.assign({}, config.defaultUserConfig, userConfig);
 }
