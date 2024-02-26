@@ -57,6 +57,49 @@ sedReplace(){
     fi
 }
 
+createJackettPassword(){
+
+    FILE=$1
+    JACKETT_API_KEY=$(sed -n 's/.*"APIKey": "\(.*\)",/\1/p' $FILE)
+
+    if command -v openssl &> /dev/null; then
+        echo " - Generate password using openssl"
+        JACKETT_PASSWORD=$(openssl rand -base64 12)
+    else
+        echo " - Generate password using /dev/urandom "
+        JACKETT_PASSWORD=$(tr -dc A-Za-z0-9_ < /dev/urandom | head -c 12)
+    fi
+
+    echo " - Create password hash ..."
+    # https://github.com/Jackett/Jackett/blob/d560175c20a64c0d5379ceb7178810d00b71498d/src/Jackett.Server/Services/SecurityService.cs#L26
+    NODE_COMMAND="node -e \"const crypto = require('crypto');
+    const input = '${JACKETT_PASSWORD}${JACKETT_API_KEY}';
+    const hash = crypto.createHash('sha512');
+    hash.update(Buffer.from(input, 'utf16le'));
+    console.log(hash.digest().toString('hex'));\""
+    JACKETT_PASSWORD_HASH=$(docker run --rm node:20-slim sh -c "$NODE_COMMAND")
+
+    sedReplace 's/"AdminPassword": .*,/"AdminPassword": "'"$JACKETT_PASSWORD_HASH"'",/' $FILE
+
+}
+
+showHelp(){
+    cat <<-END
+
+Usage: sh ./cli.sh [command]
+
+Available commands:
+
+    start               Start all containers
+    stop                Stop all containers
+    down                Stop and remove all containers
+    update              Update all containers
+    install             Install and configure all containers
+    jackett-password    Reset jackett password
+
+END
+}
+
 # Store information in an environment file
 saveConfig() {
 cat <<EOF > $ENV_FILE
@@ -72,6 +115,10 @@ EOF
 }
 
 case "$COMMAND" in
+    "--help"|"help")
+        showHelp
+        exit 0
+        ;;
     "start")
         importConfig
         runDockerCompose up -d
@@ -90,13 +137,24 @@ case "$COMMAND" in
         runDockerCompose up -d
         exit 0
         ;;
+    "reset-jackett-password")
+        importConfig
+        docker cp jackett:/config/Jackett/ServerConfig.json /tmp/ServerConfig.json > /dev/null
+        createJackettPassword /tmp/ServerConfig.json
+        docker cp /tmp/ServerConfig.json jackett:/config/Jackett/ServerConfig.json > /dev/null
+        rm -f /tmp/ServerConfig.json
+        echo "Restart jackett ..."
+        docker restart jackett
+        echo "Your new password is: $JACKETT_PASSWORD"
+        echo "Please change it for security in jackett dashboard"
+        exit 0
+        ;;
     "install")
         echo "Install ..."
         ;;
     *)
-        echo "Invalid command: ${COMMAND}"
-        echo "Usage: sh ./cli.sh [command]"
-        echo "Available commands: start, stop, down, update, install"
+         echo -e "\033[0;31mInvalid command: ${COMMAND}\033[0m"
+        showHelp
         exit 1
         ;;
 esac
@@ -184,22 +242,7 @@ JACKETT_PASSWORD_HASH=$(sed -n 's/.*"AdminPassword": "\(.*\)",/\1/p' /tmp/Server
 
 if [ -z "$JACKETT_PASSWORD_HASH" ]; then
     echo " - Configure jackett admin password ..."
-    if command -v openssl &> /dev/null; then
-        echo " - Generate password using openssl"
-        JACKETT_PASSWORD=$(openssl rand -base64 12)
-    else
-        echo " - Generate password using /dev/urandom "
-        JACKETT_PASSWORD=$(tr -dc A-Za-z0-9_ < /dev/urandom | head -c 12)
-    fi
-    echo " - Create password hash ..."
-    # https://github.com/Jackett/Jackett/blob/d560175c20a64c0d5379ceb7178810d00b71498d/src/Jackett.Server/Services/SecurityService.cs#L26
-    NODE_COMMAND="node -e \"const crypto = require('crypto');
-    const input = '${JACKETT_PASSWORD}${JACKETT_API_KEY}';
-    const hash = crypto.createHash('sha512');
-    hash.update(Buffer.from(input, 'utf16le'));
-    console.log(hash.digest().toString('hex'));\""
-    JACKETT_PASSWORD_HASH=$(docker run --rm node:20-slim sh -c "$NODE_COMMAND")
-    sedReplace 's/"AdminPassword": null/"AdminPassword": "'"$JACKETT_PASSWORD_HASH"'"/' /tmp/ServerConfig.json
+    createJackettPassword /tmp/ServerConfig.json
 fi
 
 echo " - Configure jackett flaresolverr url ..."
@@ -236,7 +279,7 @@ echo " - Your Jackett instance to configure your trackers is available on the fo
 echo "   Be aware that having a lot of trackers may slow down search queries within the addon. We recommend utilizing trackers that do not have Cloudflare protection."
 
 if [ ! -z "$JACKETT_PASSWORD" ]; then
-    echo -e "\n - \033[0;31mIMPORTANT:\033[0m The default password for Jackett is \"${JACKETT_PASSWORD}\", Please change it for security."
+    echo -e "\n - \033[0;31mIMPORTANT:\033[0m The default password for Jackett is \"${JACKETT_PASSWORD}\", Please change it for security in jackett dashboard."
 fi
 
 echo "-----------------------"
