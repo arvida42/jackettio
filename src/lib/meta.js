@@ -52,7 +52,7 @@ export async function getEpisodeById(id, season, episode){
     year: parseInt(`${meta.releaseInfo}`.split('-').shift()),
     imdb_id: meta.imdb_id,
     type: 'series',
-    stremioId: `${id}-${season}-${episode}`,
+    stremioId: `${id}:${season}:${episode}`,
     id,
     season,
     episode,
