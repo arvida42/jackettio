@@ -4,12 +4,13 @@ Selfhosted Stremio addon that resolve streams using Jackett and Debrid. It seaml
 
 ## Features
 
-- Resolve streams using Jackett and Debrid
+- Resolve streams using Jackett and Debrid (debrid-link, alldebrid, real-debrid)
 - Public / Private trackers
 - TV packs priority
 - Sorting
 - Qualities filter
 - Excludes keywords
+- Good performances (caching of requests / search, prepare next episode ...)
 
 ## Automatic installation using cli script (recommended)
 
@@ -17,7 +18,7 @@ The cli script will install, configure, secure and update your addon. **Docker m
 
 Three automatic installation options are available using cli script:
 
-- 1) **Traefik** - 
+- 1) **Traefik** (recommended) - 
  You must have a domain configured for this machine, ports 80 and 443 must be opened.
  Your Addon will be available on the address: `https://your_domain`
  You can use [noip](https://www.noip.com) to create a free domain.
@@ -33,7 +34,6 @@ Three automatic installation options are available using cli script:
  Install locally without domain. Stremio App must run in same machine to work.
  Your Addon will be available on the address: `http://localhost`
 
-### Installation on Mac or Linux
 
 ```sh
 # Create the directory where you want to store the installation configs
@@ -49,7 +49,7 @@ chmod +x ./cli.sh && ./cli.sh install
 
 ### cli scripts commands details
 ```sh
-# Install and configure the addons
+# Install all containers and configure them
 ./cli.sh install
 
 # Update all containers to the last version
@@ -63,6 +63,9 @@ chmod +x ./cli.sh && ./cli.sh install
 
 # Stop and remove all containers.
 ./cli.sh down
+
+# Reset jackett dashboard password
+.cli.sh jackett-password
 ```
 
 ## Manual installation
@@ -83,4 +86,29 @@ npm install
 JACKETT_API_KEY=API_KEY JACKETT_URL=http://localhost:9117 npm start
 ```
 
-All environment variables and default values are defined in the [config.js file](https://github.com/arvida42/jackettio/blob/master/src/lib/config.js).
+## Manual installation with Docker image
+
+```sh
+# Create data folder
+mkdir data
+
+# Create env file
+touch .env
+
+# Add settings to env file, change these settings with yours
+# See configuration below
+echo "JACKETT_URL=http://localhost:9117" >> .env
+echo "JACKETT_API_KEY=key" >> .env
+
+# Run the container
+docker run --env-file .env -v ./data:/data -e DATA_FOLDER=/data --name jackettio -p 4000:4000 -d arvida42/jackettio:latest
+```
+
+## Configuration
+
+jackettio is designed for selfhosted, whether for personal or public use. As a server owner, effortlessly configure many settings with environement variables.
+
+- **Addon ID** `ADDON_ID` Change the `id` field in stremio manifest
+- **Default user settings:** `DEFAULT_*` All default settings available for user configuration on the /configure page are fully customizable
+- **Immulatable user settings:** `IMMULATABLE_USER_CONFIG_KEYS` List of user settings that will no longer be accessible for modification or viewing on the /configure page. Example: `maxTorrents,priotizePackTorrents`
+- And mores ..., see all configurations in [config.js file](https://github.com/arvida42/jackettio/blob/master/src/lib/config.js).
