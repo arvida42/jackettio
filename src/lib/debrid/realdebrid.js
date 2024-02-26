@@ -1,6 +1,6 @@
 import {createHash} from 'crypto';
 import {ERROR} from './const.js';
-import {wait} from '../util.js';
+import {wait, isVideo} from '../util.js';
 
 export default class RealDebrid {
 
@@ -29,7 +29,10 @@ export default class RealDebrid {
   async getTorrentsCached(torrents){
     const hashList = torrents.map(torrent => torrent.infos.infoHash).filter(Boolean);
     const res = await this.#request('GET', `/torrents/instantAvailability/${hashList.join('/')}`);
-    return torrents.filter(torrent => (res[torrent.infos.infoHash]?.rd || []).length);
+    return torrents.filter(torrent => {
+      // TODO: Be sure that the requested file is in cache, torrent could be partially cached
+      return (res[torrent.infos.infoHash]?.rd || []).filter(this.#isVideoCache).length
+    });
   }
 
   async getProgressTorrents(torrents){
@@ -58,17 +61,32 @@ export default class RealDebrid {
 
   async getDownload(file){
 
-    const [torrentId, fileId] = file.id.split(':');
-    let body = new FormData();
-    body.append('files', fileId);
+    const [torrentId, fileId, hash] = file.id.split(':');
 
-    await this.#request('POST', `/torrents/selectFiles/${torrentId}`, {body});
+    const caches = await this.#request('GET', `/torrents/instantAvailability/${hash}`);
+    const bestCache = (caches[hash]?.rd || [])
+      .filter(cache => cache[fileId] && this.#isVideoCache(cache))
+      .sort((a, b) => Object.values(b).length - Object.values(a).length)
+      .shift();
+
+    const fileIds = bestCache ? Object.keys(bestCache) : [fileId];
+    let body = new FormData();
+    body.append('files', fileIds.join(','));
+
+    try {
+      await this.#request('POST', `/torrents/selectFiles/${torrentId}`, {body});
+    }catch(err){}
     const torrent = await this.#request('GET', `/torrents/info/${torrentId}`);
 
-    const link = torrent.links[0] || false;
-
-    if(torrent.status != 'downloaded' || !link){
+    if(torrent.status != 'downloaded'){
       throw new Error(ERROR.NOT_READY);
+    }
+
+    const linkIndex = torrent.files.filter(file => file.selected).findIndex(file => file.id == fileId);
+    const link = torrent.links[linkIndex] || false;
+
+    if(!link){
+      throw new Error(`LinkIndex or link not found`);
     }
 
     body = new FormData();
@@ -82,6 +100,11 @@ export default class RealDebrid {
     return createHash('md5').update(this.#apiKey).digest('hex');
   }
 
+  // Return false when a non video file is available in the cache to avoid rar files
+  async #isVideoCache(cache){
+    return !Object.values(cache).find(file => !isVideo(file.filename));
+  }
+
   async #getFilesFromTorrent(id){
 
     let torrent = await this.#request('GET', `/torrents/info/${id}`);
@@ -90,7 +113,7 @@ export default class RealDebrid {
       return {
         name: file.path.split('/').pop(),
         size: file.bytes,
-        id: `${torrent.id}:${file.id}`,
+        id: `${torrent.id}:${file.id}:${torrent.hash}`,
         url: '',
         ready: null
       };
