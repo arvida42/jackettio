@@ -24,7 +24,7 @@
       <form class="shadow p-3 bg-white z-3 rounded">
         <h5>Indexers</h5>
         <div class="ps-2 border-start">
-          <div class="mb-3" v-if="indexers.length > 1">
+          <div class="mb-3" v-if="indexers.length > 1 && !immulatableUserConfigKeys.includes('indexers')">
             <label>Indexers enabled:</label>
             <div class="d-flex">
               <div v-for="indexer in indexers" class="me-3">
@@ -41,7 +41,7 @@
         </div>
         <h5>Filters & Sorts</h5>
         <div class="ps-2 border-start">
-          <div class="mb-3">
+          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('qualities')">
             <label>Qualities:</label>
             <div class="d-flex">
               <div v-for="quality in qualities" class="me-3">
@@ -50,29 +50,29 @@
               </div>
             </div>
           </div>
-          <div class="mb-3">
+          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('excludeKeywords')">
             <label>Exclude keywords in torrent name</label>
             <input type="text" v-model="form.excludeKeywords" placeholder="keyword1,keyword2" class="form-control">
             <small class="text-muted">Example: cam,xvid</small>
           </div>
-          <div class="mb-3">
+          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('sortCached')">
             <label>Cached torrents sorting</label>
             <select v-model="form.sortCached" class="form-select">
               <option v-for="sort in sorts" :value="sort.value">{{sort.label}}</option>
             </select>
           </div>
-          <div class="mb-3">
+          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('sortUncached')">
             <label>Uncached torrents sorting</label>
             <select v-model="form.sortUncached" class="form-select">
               <option v-for="sort in sorts" :value="sort.value">{{sort.label}}</option>
             </select>
           </div>
-          <div class="mb-3">
+          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('maxTorrents')">
             <label>Max Torrents in search</label>
             <input type="number" v-model="form.maxTorrents" min="1" max="30" class="form-control">
             <small class="text-muted">A high number can significantly slow down the request</small>
           </div>
-          <div class="mb-3">
+          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('priotizePackTorrents')">
             <label>Force include <small>n</small> series pack in search</label>
             <input type="number" v-model="form.priotizePackTorrents" min="1" max="30" class="form-control">
             <small class="text-muted">This could increase the chance of cached torrents. 2 is a good number</small>
@@ -80,9 +80,9 @@
         </div>
         <h5>Debrid</h5>
         <div class="ps-2 border-start">
-          <div class="mb-3 d-flex flex-row">
-            <input class="form-check-input me-1" type="checkbox" v-model="form.priotizePackTorrents" id="priotizePackTorrents">
-            <label for="priotizePackTorrents" class="d-flex flex-column">
+          <div class="mb-3 d-flex flex-row" v-if="!immulatableUserConfigKeys.includes('forceCacheNextEpisode')">
+            <input class="form-check-input me-1" type="checkbox" v-model="form.forceCacheNextEpisode" id="forceCacheNextEpisode">
+            <label for="forceCacheNextEpisode" class="d-flex flex-column">
               <span>Prepare the next episode on Debrid. (Recommended)</span>
               <small class="text-muted">Automatically add the next espisode on debrid when not avaiable to instantally stream it later.</small>
             </label>
@@ -116,7 +116,7 @@
       createApp({
         setup() {
 
-          const {addon, debrids, defaultUserConfig, qualities, sorts, indexers, passkey} = config;
+          const {addon, debrids, defaultUserConfig, qualities, sorts, indexers, passkey, immulatableUserConfigKeys} = config;
 
           const debrid = ref({});
           const error = ref('');
@@ -194,7 +194,8 @@
             error,
             manifestUrl,
             indexers,
-            passkey
+            passkey,
+            immulatableUserConfigKeys
           }
         }
       }).mount('#app')

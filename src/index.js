@@ -45,7 +45,8 @@ app.get('/:userConfig?/configure', async(req, res) => {
     qualities: config.qualities,
     sorts: config.sorts,
     indexers: (await getIndexers()).map(indexer => ({id: indexer.id, label: indexer.title})),
-    passkey: {required: false}
+    passkey: {required: false},
+    immulatableUserConfigKeys: config.immulatableUserConfigKeys
   };
   if(config.replacePasskey){
     templateConfig.passkey = {
