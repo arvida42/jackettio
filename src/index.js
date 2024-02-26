@@ -44,8 +44,16 @@ app.get('/:userConfig?/configure', async(req, res) => {
     defaultUserConfig: config.defaultUserConfig,
     qualities: config.qualities,
     sorts: config.sorts,
-    indexers: (await getIndexers()).map(indexer => ({id: indexer.id, label: indexer.title}))
+    indexers: (await getIndexers()).map(indexer => ({id: indexer.id, label: indexer.title})),
+    passkey: {required: false}
   };
+  if(config.replacePasskey){
+    templateConfig.passkey = {
+      required: true,
+      infoUrl: config.replacePasskeyInfoUrl,
+      pattern: config.replacePasskeyPattern
+    }
+  }
   return res.send(template.replace('/** import-config */', `const config = ${JSON.stringify(templateConfig, null, 2)}`));
 });
 

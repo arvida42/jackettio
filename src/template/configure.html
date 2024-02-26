@@ -31,6 +31,11 @@
             </div>
           </div>
         </div>
+        <div class="mb-3" v-if="passkey && passkey.required">
+          <label>Tracker passkey</label>
+          <small v-if="passkey.infoUrl" class="ms-2"><a :href="passkey.infoUrl" target="_blank" rel="noreferrer">Get It here</a></small>
+          <input type="text" v-model="form.passkey" class="form-control" :pattern="passkey.pattern">
+        </div>
         <div class="mb-3">
           <label>Qualities:</label>
           <div class="d-flex">
@@ -102,7 +107,7 @@
       createApp({
         setup() {
 
-          const {addon, debrids, defaultUserConfig, qualities, sorts, indexers} = config;
+          const {addon, debrids, defaultUserConfig, qualities, sorts, indexers, passkey} = config;
 
           const debrid = ref({});
           const error = ref('');
@@ -153,6 +158,15 @@
                 throw new Error(`Indexer is required`);
               }
 
+              if(passkey && passkey.required){
+                if(!userConfig.passkey){
+                  throw new Error(`Tracker passkey required`);
+                }
+                if(!userConfig.passkey.match(new RegExp(passkey.pattern))){
+                  throw new Error(`Tracker passkey have invalid format: ${passkey.pattern}`);
+                }
+              }
+
               manifestUrl.value = `stremio://${document.location.host}/${btoa(JSON.stringify(userConfig))}/manifest.json`;
               document.location.href = manifestUrl.value;
             }catch(err){
@@ -170,7 +184,8 @@
             configure,
             error,
             manifestUrl,
-            indexers
+            indexers,
+            passkey
           }
         }
       }).mount('#app')

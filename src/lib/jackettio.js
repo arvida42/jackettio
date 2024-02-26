@@ -178,12 +178,7 @@ async function prepareNextEpisode(userConfig, metaInfos, debridInstance){
       if(userConfig.forceCacheNextEpisode && torrents.length && !torrents.find(torrent => torrent.isCached)){
         console.log(`${stremioId} : Force cache next episode (${metaInfos.episode}) on debrid`);
         const bestTorrent = torrents[0];
-        if(bestTorrent.infos.magnetUrl){
-          await debridInstance.getFilesFromMagnet(bestTorrent.infos.magnetUrl);
-        }else{
-          const buffer = await torrentInfos.getTorrentFile(bestTorrent.infos);
-          await debridInstance.getFilesFromBuffer(buffer);
-        }
+        await getDebridFiles(userConfig, bestTorrent.infos, debridInstance);
       }
 
     }
@@ -193,6 +188,29 @@ async function prepareNextEpisode(userConfig, metaInfos, debridInstance){
     if(err.message != debrid.ERROR.NOT_READY){
       console.log('cache next episode:', err);
     }
+
+  }
+
+}
+
+async function getDebridFiles(userConfig, infos, debridInstance){
+
+  if(infos.magnetUrl){
+
+    return debridInstance.getFilesFromMagnet(infos.magnetUrl);
+
+  }else{
+
+    let buffer = await torrentInfos.getTorrentFile(infos);
+
+    if(config.replacePasskey){
+      if(!userConfig.passkey.match(new RegExp(config.replacePasskeyPattern))){
+        throw new Error(`Invalid user passkey, pattern not match: ${config.replacePasskeyPattern}`);
+      }
+      buffer = Buffer.from(buffer.toString('binary').replace(new RegExp(config.replacePasskey, 'g'), userConfig.passkey), 'binary');
+    }
+
+    return debridInstance.getFilesFromBuffer(buffer);
 
   }
 
@@ -256,14 +274,7 @@ export async function getDownload(userConfig, type, stremioId, torrentId){
     if(download)return download;
 
     console.log(`${stremioId} : get files ...`);
-
-    if(infos.magnetUrl){
-      files = await debridInstance.getFilesFromMagnet(infos.magnetUrl);
-    }else{
-      const buffer = await torrentInfos.getTorrentFile(infos);
-      files = await debridInstance.getFilesFromBuffer(buffer);
-    }
-
+    files = await getDebridFiles(userConfig, infos, debridInstance);
     console.log(`${stremioId} : ${files.length} files found`);
 
     files = files.sort(sortBy('size', true));
