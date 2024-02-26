@@ -89,7 +89,7 @@ export async function get({link, id, magnetUrl, infoHash, name, size, type}){
     link,
     magnetUrl: magnetUrl || '',
     torrentLocation,
-    infoHash: parseInfos.infoHash || '',
+    infoHash: (parseInfos.infoHash || '').toLowerCase(),
     name: parseInfos.name || '',
     private: parseInfos.private || false,
     size: parseInfos.length || -1,
