@@ -19,7 +19,7 @@ const respond = (res, data) => {
   res.send(data)
 }
 
-app.set('trust proxy', 'loopback');
+app.set('trust proxy', config.trustProxy);
 app.use(express.static(path.join(import.meta.dirname, 'static')));
 
 app.use((req, res, next) => {

@@ -1,6 +1,8 @@
 export default {
   // Server port
   port: parseInt(process.env.PORT || 4000),
+  // https://expressjs.com/en/guide/behind-proxies.html
+  trustProxy: boolOrString(process.env.TRUST_PROXY || 'loopback, linklocal, uniquelocal'),
   // Jacket instance url
   jackettUrl: process.env.JACKETT_URL || 'http://localhost:9117',
   // Jacket API key
@@ -80,4 +82,14 @@ function sortCommaListToArray(str){
     const [key, reverse] = sort.split(':');
     return [key.trim(), reverse.trim() == 'true'];
   });
+}
+
+function boolOrString(str){
+  if(str.trim().toLowerCase() == 'true'){
+    return true;
+  }else if(str.trim().toLowerCase() == 'false'){
+    return false;
+  }else{
+    return str.trim();
+  }
 }
