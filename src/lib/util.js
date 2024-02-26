@@ -27,3 +27,27 @@ export function bytesToSize(bytes){
 export function wait(ms){
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+export function isVideo(filename){
+  return [
+    "3g2",
+    "3gp",
+    "avi",
+    "flv",
+    "mkv",
+    "mk3d",
+    "mov",
+    "mp2",
+    "mp4",
+    "m4v",
+    "mpe",
+    "mpeg",
+    "mpg",
+    "mpv",
+    "webm",
+    "wmv",
+    "ogm",
+    "ts",
+    "m2ts"
+  ].includes(filename?.split('.').pop());
+}
