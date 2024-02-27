@@ -46,14 +46,18 @@ export default class RealDebrid {
     }, {});
   }
 
-  async getFilesFromMagnet(magnet){
+  async getFilesFromMagnet(magnet, infoHash){
+    const torrentId = await this.#searchTorrentIdByHash(infoHash);
+    if(torrentId)return this.#getFilesFromTorrent(torrentId);
     const body = new FormData();
     body.append('magnet', magnet);
     const res = await this.#request('POST', `/torrents/addMagnet`, {body});
     return this.#getFilesFromTorrent(res.id);
   }
 
-  async getFilesFromBuffer(buffer){
+  async getFilesFromBuffer(buffer, infoHash){
+    const torrentId = await this.#searchTorrentIdByHash(infoHash);
+    if(torrentId)return this.#getFilesFromTorrent(torrentId);
     const body = buffer;
     const res = await this.#request('PUT', `/torrents/addTorrent`, {body});
     return this.#getFilesFromTorrent(res.id);
@@ -61,22 +65,27 @@ export default class RealDebrid {
 
   async getDownload(file){
 
-    const [torrentId, fileId, hash] = file.id.split(':');
+    const [torrentId, fileId] = file.id.split(':');
 
-    const caches = await this.#request('GET', `/torrents/instantAvailability/${hash}`);
-    const bestCache = (caches[hash]?.rd || [])
-      .filter(cache => cache[fileId] && this.#isVideoCache(cache))
-      .sort((a, b) => Object.values(b).length - Object.values(a).length)
-      .shift();
+    let torrent = await this.#request('GET', `/torrents/info/${torrentId}`);
+    let body;
 
-    const fileIds = bestCache ? Object.keys(bestCache) : [fileId];
-    let body = new FormData();
-    body.append('files', fileIds.join(','));
+    if(torrent.status == 'waiting_files_selection'){
 
-    try {
+      const caches = await this.#request('GET', `/torrents/instantAvailability/${torrent.hash}`);
+      const bestCache = (caches[torrent.hash]?.rd || [])
+        .filter(cache => cache[fileId] && this.#isVideoCache(cache))
+        .sort((a, b) => Object.values(b).length - Object.values(a).length)
+        .shift();
+
+      const fileIds = bestCache ? Object.keys(bestCache) : torrent.files.filter(file => isVideo(file.path)).map(file => file.id);
+      body = new FormData();
+      body.append('files', fileIds.join(','));
+
       await this.#request('POST', `/torrents/selectFiles/${torrentId}`, {body});
-    }catch(err){}
-    const torrent = await this.#request('GET', `/torrents/info/${torrentId}`);
+      torrent = await this.#request('GET', `/torrents/info/${torrentId}`);
+
+    }
 
     if(torrent.status != 'downloaded'){
       throw new Error(ERROR.NOT_READY);
@@ -113,11 +122,23 @@ export default class RealDebrid {
       return {
         name: file.path.split('/').pop(),
         size: file.bytes,
-        id: `${torrent.id}:${file.id}:${torrent.hash}`,
+        id: `${torrent.id}:${file.id}`,
         url: '',
         ready: null
       };
     });
+
+  }
+
+  async #searchTorrentIdByHash(hash){
+
+    const torrents = await this.#request('GET', `/torrents`);
+
+    for(let torrent of torrents){
+      if(torrent.hash == hash && ['magnet_conversion', 'waiting_files_selection', 'queued', 'downloading', 'downloaded'].includes(torrent.status)){
+        return torrent.id;
+      }
+    }
 
   }
 
