@@ -43,7 +43,7 @@ export default class AllDebrid {
     }, {});
   }
 
-  async getFilesFromMagnet(url){
+  async getFilesFromMagnet(url, infoHash){
     const body = new FormData();
     body.append('magnets[]', url);
     const res = await this.#request('POST', `/magnet/upload`, {body});
@@ -51,7 +51,7 @@ export default class AllDebrid {
     return this.#getFilesFromTorrent(magnet.id);
   }
 
-  async getFilesFromBuffer(buffer){
+  async getFilesFromBuffer(buffer, infoHash){
     const body = new FormData();
     body.append('files[0]', new Blob([buffer]), 'file.torrent');
     const res = await this.#request('POST', `/magnet/upload/file`, {body});

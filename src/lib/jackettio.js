@@ -209,7 +209,7 @@ async function getDebridFiles(userConfig, infos, debridInstance){
 
   if(infos.magnetUrl){
 
-    return debridInstance.getFilesFromMagnet(infos.magnetUrl);
+    return debridInstance.getFilesFromMagnet(infos.magnetUrl, infos.infoHash);
 
   }else{
 
@@ -222,7 +222,7 @@ async function getDebridFiles(userConfig, infos, debridInstance){
       buffer = Buffer.from(buffer.toString('binary').replace(new RegExp(config.replacePasskey, 'g'), userConfig.passkey), 'binary');
     }
 
-    return debridInstance.getFilesFromBuffer(buffer);
+    return debridInstance.getFilesFromBuffer(buffer, infos.infoHash);
 
   }
 

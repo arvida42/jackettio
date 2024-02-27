@@ -44,13 +44,13 @@ export default class DebridLink {
     }, {});
   }
 
-  async getFilesFromMagnet(url){
+  async getFilesFromMagnet(url, infoHash){
     const body = {url, async: true};
     const res = await this.#request('POST', `/seedbox/add`, {body});
     return this.#getFilesFromTorrent(res.value);
   }
 
-  async getFilesFromBuffer(buffer){
+  async getFilesFromBuffer(buffer, infoHash){
     const body = new FormData();
     body.append('file', new Blob([buffer]), 'file.torrent');
     const res = await this.#request('POST', `/seedbox/add`, {body});
