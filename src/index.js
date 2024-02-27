@@ -44,7 +44,7 @@ app.get('/:userConfig?/configure', async(req, res) => {
     defaultUserConfig: config.defaultUserConfig,
     qualities: config.qualities,
     sorts: config.sorts,
-    indexers: (await getIndexers()).map(indexer => ({value: indexer.id, label: indexer.title})),
+    indexers: (await getIndexers()).map(indexer => ({value: indexer.id, label: indexer.title, types: ['movie', 'series'].filter(type => indexer.searching[type].available)})),
     passkey: {required: false},
     immulatableUserConfigKeys: config.immulatableUserConfigKeys
   };
@@ -104,7 +104,7 @@ app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
   try {
 
     const url = await jackettio.getDownload(
-      JSON.parse(atob(req.params.userConfig)),
+      Object.assign(JSON.parse(atob(req.params.userConfig)), {ip: req.ip}),
       req.params.type, 
       req.params.id, 
       req.params.torrentId

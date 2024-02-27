@@ -27,7 +27,7 @@
           <div class="mb-3" v-if="indexers.length > 1 && !immulatableUserConfigKeys.includes('indexers')">
             <label>Indexers enabled:</label>
             <div class="d-flex">
-              <div v-for="indexer in indexers" class="me-3">
+              <div v-for="indexer in indexers" class="me-3" :title="indexer.types.join(', ')">
                 <input class="form-check-input me-1" type="checkbox" v-model="indexer.checked" :id="indexer.label">
                 <label class="form-check-label" :for="indexer.label">{{indexer.label}}</label>
               </div>
