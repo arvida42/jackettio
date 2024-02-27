@@ -58,13 +58,21 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
       return true;
     };
 
-    const indexers = (await jackett.getIndexers()).filter(indexer => {
-      return indexer.searching[type].available 
-        && (
-          userConfig.indexers.includes(indexer.id) 
-          || userConfig.indexers.includes('all')
-        )
-    });
+    let indexers = (await jackett.getIndexers());
+    let availableIndexers = indexers.filter(indexer => indexer.searching[type].available);
+    let userIndexers = availableIndexers.filter(indexer => (userConfig.indexers.includes(indexer.id) || userConfig.indexers.includes('all')));
+
+    if(userIndexers.length){
+      indexers = userIndexers;
+    }else if(availableIndexers.length){
+      console.log(`${stremioId} : User defined indexers "${userConfig.indexers.join(', ')}" not available, fallback to all "${type}" indexers`);
+      indexers = availableIndexers;
+    }else if(indexers.length){
+      console.log(`${stremioId} : User defined indexers "${userConfig.indexers.join(', ')}" or "${type}" indexers not available, fallback to all indexers`);
+    }else{
+      throw new Error(`${stremioId} : No indexer configured in jackett`);
+    }
+
     console.log(`${stremioId} : ${indexers.length} indexers selected : ${indexers.map(indexer => indexer.title).join(', ')}`);
 
     if(type == 'movie'){
