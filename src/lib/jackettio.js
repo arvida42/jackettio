@@ -145,21 +145,27 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
     if(debridInstance){
 
-      const cachedTorrents = (await debridInstance.getTorrentsCached(torrents)).map(torrent => {
-        torrent.isCached = true;
-        return torrent;
-      });
-      const uncachedTorrents = torrents.filter(torrent => cachedTorrents.indexOf(torrent) === -1);
-
-      console.log(`${stremioId} : ${cachedTorrents.length} cached torrents on ${debridInstance.shortName}`);
-
-      torrents = [].concat(cachedTorrents.sort(sortBy(...sortCached)))
-                   .concat(uncachedTorrents.sort(sortBy(...sortUncached)));
-
       try {
+
+        const cachedTorrents = (await debridInstance.getTorrentsCached(torrents)).map(torrent => {
+          torrent.isCached = true;
+          return torrent;
+        });
+        const uncachedTorrents = torrents.filter(torrent => cachedTorrents.indexOf(torrent) === -1);
+
+        console.log(`${stremioId} : ${cachedTorrents.length} cached torrents on ${debridInstance.shortName}`);
+
+        torrents = [].concat(cachedTorrents.sort(sortBy(...sortCached)))
+                     .concat(uncachedTorrents.sort(sortBy(...sortUncached)));
+      
         const progress = await debridInstance.getProgressTorrents(torrents);
         torrents.forEach(torrent => torrent.progress = progress[torrent.infos.infoHash] || null);
-      }catch(err){}
+
+      }catch(err){
+
+        console.log(`${stremioId} : ${debridInstance.shortName} : ${err.message || err}`);
+
+      }
 
     }
 
