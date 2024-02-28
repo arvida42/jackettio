@@ -23,6 +23,10 @@ export default {
   replacePasskeyPattern: process.env.REPLACE_PASSKEY_PATTERN || '[a-zA-Z0-9]+',
   // List of config keys that user can't configure
   immulatableUserConfigKeys: commaListToArray(process.env.IMMULATABLE_USER_CONFIG_KEYS || ''),
+  // Welcome message in /configure page. Markdown format
+  welcomeMessage: process.env.WELCOME_MESSAGE || '',
+  // Trust the cf-connecting-ip header
+  trustCfIpHeader: (process.env.TRUST_CF_IP_HEADER || 'false') === 'true',
 
   defaultUserConfig: {
     qualities: commaListToArray(process.env.DEFAULT_QUALITIES || '0, 720, 1080').map(v => parseInt(v)),

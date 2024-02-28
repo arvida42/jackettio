@@ -22,6 +22,7 @@
     <div class="container my-5">
       <h1 class="mb-4">{{addon.name}} <span style="font-size:.6em">v{{addon.version}}</span></h1>
       <form class="shadow p-3 bg-white z-3 rounded">
+        <!-- welcome-message -->
         <h5>Indexers</h5>
         <div class="ps-2 border-start">
           <div class="mb-3" v-if="indexers.length > 1 && !immulatableUserConfigKeys.includes('indexers')">

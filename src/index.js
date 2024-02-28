@@ -1,3 +1,4 @@
+import showdown from 'showdown';
 import express from 'express';
 import localtunnel from 'localtunnel';
 import {readFileSync} from "fs";
@@ -9,6 +10,8 @@ import {getIndexers} from './lib/jackett.js';
 import * as jackettio from "./lib/jackettio.js";
 import {cleanTorrentFolder, createTorrentFolder} from './lib/torrentInfos.js';
 
+const converter = new showdown.Converter();
+const welcomeMessageHtml = config.welcomeMessage ? converter.makeHtml(config.welcomeMessage) : '';
 const addon = JSON.parse(readFileSync(`./package.json`));
 const app = express();
 
@@ -20,6 +23,15 @@ const respond = (res, data) => {
 }
 
 app.set('trust proxy', config.trustProxy);
+
+app.use((req, res, next) => {
+  req.clientIp = req.ip;
+  if(req.get('CF-Connecting-IP')){
+    req.clientIp = req.get('CF-Connecting-IP');
+  }
+  next();
+});
+
 app.use(express.static(path.join(import.meta.dirname, 'static')));
 
 app.use((req, res, next) => {
@@ -55,7 +67,7 @@ app.get('/:userConfig?/configure', async(req, res) => {
       pattern: config.replacePasskeyPattern
     }
   }
-  return res.send(template.replace('/** import-config */', `const config = ${JSON.stringify(templateConfig, null, 2)}`));
+  return res.send(template.replace('/** import-config */', `const config = ${JSON.stringify(templateConfig, null, 2)}`).replace('<!-- welcome-message -->', welcomeMessageHtml));
 });
 
 // https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/advanced.md#using-user-data-in-addons
@@ -82,7 +94,7 @@ app.get("/:userConfig/stream/:type/:id.json", async(req, res) => {
   try {
 
     const streams = await jackettio.getStreams(
-      Object.assign(JSON.parse(atob(req.params.userConfig)), {ip: req.ip}),
+      Object.assign(JSON.parse(atob(req.params.userConfig)), {ip: req.clientIp}),
       req.params.type, 
       req.params.id,
       `${req.hostname == 'localhost' ? 'http' : 'https'}://${req.hostname}`
@@ -104,7 +116,7 @@ app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
   try {
 
     const url = await jackettio.getDownload(
-      Object.assign(JSON.parse(atob(req.params.userConfig)), {ip: req.ip}),
+      Object.assign(JSON.parse(atob(req.params.userConfig)), {ip: req.clientIp}),
       req.params.type, 
       req.params.id, 
       req.params.torrentId
