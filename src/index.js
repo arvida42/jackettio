@@ -11,7 +11,7 @@ import * as jackettio from "./lib/jackettio.js";
 import {cleanTorrentFolder, createTorrentFolder} from './lib/torrentInfos.js';
 
 const converter = new showdown.Converter();
-const welcomeMessageHtml = config.welcomeMessage ? converter.makeHtml(config.welcomeMessage) : '';
+const welcomeMessageHtml = config.welcomeMessage ? `${converter.makeHtml(config.welcomeMessage)}<div class="my-4 border-top border-secondary-subtle"></div>` : '';
 const addon = JSON.parse(readFileSync(`./package.json`));
 const app = express();
 
@@ -45,18 +45,23 @@ app.get('/', (req, res) => {
 });
 
 app.get('/:userConfig?/configure', async(req, res) => {
-  let template = readFileSync(`./src/template/configure.html`).toString();
+  let indexers = (await getIndexers().catch(() => []))
+    .map(indexer => ({
+      value: indexer.id, 
+      label: indexer.title, 
+      types: ['movie', 'series'].filter(type => indexer.searching[type].available)
+    }));
   const templateConfig = {
     debrids: await debrid.list(),
     addon: {
       version: addon.version,
-      name: addon.name
+      name: addon.name.charAt(0).toUpperCase() + addon.name.slice(1)
     },
     userConfig: req.params.userConfig || '',
     defaultUserConfig: config.defaultUserConfig,
     qualities: config.qualities,
     sorts: config.sorts,
-    indexers: (await getIndexers()).map(indexer => ({value: indexer.id, label: indexer.title, types: ['movie', 'series'].filter(type => indexer.searching[type].available)})),
+    indexers,
     passkey: {required: false},
     immulatableUserConfigKeys: config.immulatableUserConfigKeys
   };
@@ -67,7 +72,10 @@ app.get('/:userConfig?/configure', async(req, res) => {
       pattern: config.replacePasskeyPattern
     }
   }
-  return res.send(template.replace('/** import-config */', `const config = ${JSON.stringify(templateConfig, null, 2)}`).replace('<!-- welcome-message -->', welcomeMessageHtml));
+  let template = readFileSync(`./src/template/configure.html`).toString()
+    .replace('/** import-config */', `const config = ${JSON.stringify(templateConfig, null, 2)}`)
+    .replace('<!-- welcome-message -->', welcomeMessageHtml);
+  return res.send(template);
 });
 
 // https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/advanced.md#using-user-data-in-addons

@@ -1,4 +1,4 @@
-# jackettio
+# Jackettio
 
 Selfhosted Stremio addon that resolve streams using Jackett and Debrid. It seamlessly integrates with private trackers.
 
@@ -106,7 +106,7 @@ docker run --env-file .env -v ./data:/data -e DATA_FOLDER=/data --name jackettio
 
 ## Configuration
 
-jackettio is designed for selfhosted, whether for personal or public use. As a server owner, effortlessly configure many settings with environement variables.
+Jackettio is designed for selfhosted, whether for personal or public use. As a server owner, effortlessly configure many settings with environement variables.
 
 - **Addon ID** `ADDON_ID` Change the `id` field in stremio manifest
 - **Default user settings:** `DEFAULT_*` All default settings available for user configuration on the /configure page are fully customizable

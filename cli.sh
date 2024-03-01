@@ -266,7 +266,7 @@ case "$INSTALL_TYPE" in
         echo " - Your addon is available on the following address: https://${ACME_DOMAIN}/configure"
         ;;
     "2")
-        echo "Wait for jackettio ..."
+        echo "Wait for Jackettio ..."
         sleep 4
         runDockerCompose logs -n 30 jackettio
         ;;

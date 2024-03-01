@@ -1,30 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>jackettio</title>
+    <title>Jackettio</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <style>
-      #app {
-        background-color: #ffffff;
-        opacity: 1;
-        background-image:  radial-gradient(#b3b3b3 0.7000000000000001px, transparent 0.7000000000000001px), radial-gradient(#b3b3b3 0.7000000000000001px, #ffffff 0.7000000000000001px);
-        background-size: 28px 28px;
-        background-position: 0 0,14px 14px;
-      }
       .container {
         max-width: 600px;
       }
+      [v-cloak] { display: none; }
     </style>
   </head>
   <body id="app">
-    <div class="container my-5">
+    <div class="container my-5" v-cloak>
       <h1 class="mb-4">{{addon.name}} <span style="font-size:.6em">v{{addon.version}}</span></h1>
-      <form class="shadow p-3 bg-white z-3 rounded">
+      <form class="shadow p-3 bg-dark-subtle z-3 rounded">
         <!-- welcome-message -->
         <h5>Indexers</h5>
-        <div class="ps-2 border-start">
+        <div class="ps-2 border-start border-secondary-subtle">
+          <div class="mb-3 alert alert-warning" v-if="indexers.length == 0">
+            No indexers available, Jackett instance does not seem to be configured correctly.
+          </div>
           <div class="mb-3" v-if="indexers.length > 1 && !immulatableUserConfigKeys.includes('indexers')">
             <label>Indexers enabled:</label>
             <div class="d-flex">
@@ -41,7 +38,7 @@
           </div>
         </div>
         <h5>Filters & Sorts</h5>
-        <div class="ps-2 border-start">
+        <div class="ps-2 border-start border-secondary-subtle">
           <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('qualities')">
             <label>Qualities:</label>
             <div class="d-flex">
@@ -80,7 +77,7 @@
           </div>
         </div>
         <h5>Debrid</h5>
-        <div class="ps-2 border-start">
+        <div class="ps-2 border-start border-secondary-subtle">
           <div class="mb-3 d-flex flex-row" v-if="!immulatableUserConfigKeys.includes('forceCacheNextEpisode')">
             <input class="form-check-input me-1" type="checkbox" v-model="form.forceCacheNextEpisode" id="forceCacheNextEpisode">
             <label for="forceCacheNextEpisode" class="d-flex flex-column">
