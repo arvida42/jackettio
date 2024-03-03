@@ -79,13 +79,11 @@ app.get('/:userConfig?/configure', async(req, res) => {
 });
 
 // https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/advanced.md#using-user-data-in-addons
-app.get("/:userConfig/manifest.json", async(req, res) => {
-  const userConfig = JSON.parse(atob(req.params.userConfig));
-  const debridInstance = debrid.instance(userConfig);
+app.get("/:userConfig?/manifest.json", async(req, res) => {
   const manifest = {
     id: config.addonId,
     version: addon.version,
-    name: `${addon.name} ${debridInstance.shortName}`,
+    name: addon.name,
     description: addon.description,
     icon: "https://avatars.githubusercontent.com/u/15383019?s=48&v=4",
     resources: ["stream"],
@@ -94,6 +92,11 @@ app.get("/:userConfig/manifest.json", async(req, res) => {
     catalogs: [],
     behaviorHints: {configurable: true}
   };
+  if(req.params.userConfig){
+    const userConfig = JSON.parse(atob(req.params.userConfig));
+    const debridInstance = debrid.instance(userConfig);
+    manifest.name += ` ${debridInstance.shortName}`;
+  }
   respond(res, manifest);
 });
 
