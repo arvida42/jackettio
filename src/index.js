@@ -132,6 +132,10 @@ app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
       req.params.id, 
       req.params.torrentId
     );
+
+    const parsed = new URL(url);
+    const cut = (value) => value ?  `${value.substr(0, 5)}******${value.substr(-5)}` : '';
+    console.log(`Redirect: ${parsed.protocol}://${parsed.host}${cut(parsed.pathname)}${cut(parsed.search)}`);
     
     res.redirect(url);
     res.end();
