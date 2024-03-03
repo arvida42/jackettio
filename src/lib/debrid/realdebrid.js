@@ -26,12 +26,19 @@ export default class RealDebrid {
     this.#ip = userConfig.ip || '';
   }
 
-  async getTorrentsCached(torrents){
+  async getTorrentsCached(torrents, isValidCachedFiles){
     const hashList = torrents.map(torrent => torrent.infos.infoHash).filter(Boolean);
     const res = await this.#request('GET', `/torrents/instantAvailability/${hashList.join('/')}`);
     return torrents.filter(torrent => {
-      // TODO: Be sure that the requested file is in cache, torrent could be partially cached
-      return (res[torrent.infos.infoHash]?.rd || []).filter(this.#isVideoCache).length
+      const cachedFiles = [];
+      const caches = (res[torrent.infos.infoHash]?.rd || []).filter(this.#isVideoCache);
+      for(const cache of caches){
+        for(const file of Object.values(cache)){
+          const f = {name: file.filename, size: file.filesize};
+          if(!cachedFiles.includes(f))cachedFiles.push(f);
+        }
+      }
+      return cachedFiles.length > 0 && isValidCachedFiles(cachedFiles);
     });
   }
 

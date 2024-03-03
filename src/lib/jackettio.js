@@ -46,6 +46,13 @@ function priotizeItems(allItems, priotizeItems, max){
   return allItems;
 }
 
+function searchEpisodeFile(files, season, episode){
+  return files.find(file => file.name.includes(`S${numberPad(season)}E${numberPad(episode)}`))
+    || files.find(file => file.name.includes(`${season}${numberPad(episode)}`))
+    || files.find(file => file.name.includes(`${numberPad(episode)}`))
+    || false;
+}
+
 async function getTorrents(userConfig, metaInfos, debridInstance){
 
   while(actionInProgress.getTorrents[metaInfos.stremioId]){
@@ -154,7 +161,8 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
       try {
 
-        const cachedTorrents = (await debridInstance.getTorrentsCached(torrents)).map(torrent => {
+        const isValidCachedFiles = type == 'series' ? files => !!searchEpisodeFile(files, season, episode) : files => true;
+        const cachedTorrents = (await debridInstance.getTorrentsCached(torrents, isValidCachedFiles)).map(torrent => {
           torrent.isCached = true;
           return torrent;
         });
@@ -312,11 +320,7 @@ export async function getDownload(userConfig, type, stremioId, torrentId){
 
     }else if(type == 'series'){
 
-      let bestFile = files.find(file => file.name.includes(`S${numberPad(season)}E${numberPad(episode)}`))
-        || files.find(file => file.name.includes(`${season}${numberPad(episode)}`))
-        || files.find(file => file.name.includes(`${numberPad(episode)}`))
-        || files[0];
-
+      let bestFile = searchEpisodeFile(files) || files[0];
       download = await debridInstance.getDownload(bestFile);
 
     }
