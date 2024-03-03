@@ -31,6 +31,11 @@
               </div>
             </div>
           </div>
+          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('indexerTimeoutSec')">
+            <label>Indexer Timeout</label>
+            <input type="number" v-model="form.indexerTimeoutSec" min="6" max="120" class="form-control">
+            <small class="text-muted">Max execution time in seconds before timeout.</small>
+          </div>
           <div class="mb-3" v-if="passkey && passkey.required">
             <label>Tracker passkey</label>
             <small v-if="passkey.infoUrl" class="ms-2"><a :href="passkey.infoUrl" target="_blank" rel="noreferrer">Get It here</a></small>
@@ -143,7 +148,8 @@
             sortCached: defaultUserConfig.sortCached,
             sortUncached: defaultUserConfig.sortUncached,
             forceCacheNextEpisode: defaultUserConfig.forceCacheNextEpisode,
-            priotizeLanguages: defaultUserConfig.priotizeLanguages
+            priotizeLanguages: defaultUserConfig.priotizeLanguages,
+            indexerTimeoutSec: defaultUserConfig.indexerTimeoutSec
           };
           qualities.forEach(quality => quality.checked = defaultUserConfig.qualities.includes(quality.value));
           indexers.forEach(indexer => indexer.checked = defaultUserConfig.indexers.includes(indexer.id) || defaultUserConfig.indexers.includes('all'));

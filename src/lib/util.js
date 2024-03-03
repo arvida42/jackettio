@@ -1,3 +1,5 @@
+import {setTimeout} from 'timers/promises';
+
 export function numberPad(number, count){
   return `${number}`.padStart(count || 2, 0);
 }
@@ -25,7 +27,7 @@ export function bytesToSize(bytes){
 }
 
 export function wait(ms){
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return setTimeout(ms);
 }
 
 export function isVideo(filename){
@@ -50,4 +52,13 @@ export function isVideo(filename){
     "ts",
     "m2ts"
   ].includes(filename?.split('.').pop());
+}
+
+export async function promiseTimeout(promise, ms){
+  const ac = new AbortController();
+  const waitPromise = setTimeout(ms, null, { signal: ac.signal }).then(() => Promise.reject(`Max execution time reached ${ms}`));
+  return Promise.race([waitPromise, promise.then(res => {
+    ac.abort();
+    return res;
+  })]);
 }

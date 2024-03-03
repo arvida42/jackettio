@@ -1,5 +1,5 @@
 import pLimit from 'p-limit';
-import {parseWords, numberPad, sortBy, bytesToSize, wait} from './util.js';
+import {parseWords, numberPad, sortBy, bytesToSize, wait, promiseTimeout} from './util.js';
 import config from './config.js';
 import cache from './cache.js';
 import * as meta from './meta.js';
@@ -55,7 +55,7 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
   try {
 
-    const {qualities, excludeKeywords, maxTorrents, sortCached, sortUncached, priotizePackTorrents, priotizeLanguages} = userConfig;
+    const {qualities, excludeKeywords, maxTorrents, sortCached, sortUncached, priotizePackTorrents, priotizeLanguages, indexerTimeoutSec} = userConfig;
     const {id, season, episode, type, stremioId} = metaInfos;
 
     let torrents = [];
@@ -94,7 +94,7 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
     if(type == 'movie'){
 
-      const promises = indexers.map(indexer => jackett.searchMovieTorrents({...metaInfos, indexer: indexer.id}).catch(err => []));
+      const promises = indexers.map(indexer => promiseTimeout(jackett.searchMovieTorrents({...metaInfos, indexer: indexer.id}), indexerTimeoutSec*1000).catch(err => []));
       torrents = [].concat(...(await Promise.all(promises)));
 
       console.log(`${stremioId} : ${torrents.length} torrents found in ${(new Date() - startDate) / 1000}s`);
@@ -105,8 +105,8 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
     }else if(type == 'series'){
 
-      const episodesPromises = indexers.map(indexer => jackett.searchEpisodeTorrents({...metaInfos, indexer: indexer.id}).catch(err => []));
-      const packsPromises = indexers.map(indexer => jackett.searchSeasonTorrents({...metaInfos, indexer: indexer.id}).catch(err => []));
+      const episodesPromises = indexers.map(indexer => promiseTimeout(jackett.searchEpisodeTorrents({...metaInfos, indexer: indexer.id}), indexerTimeoutSec*1000).catch(err => []));
+      const packsPromises = indexers.map(indexer => promiseTimeout(jackett.searchSeasonTorrents({...metaInfos, indexer: indexer.id}), indexerTimeoutSec*1000).catch(err => []));
 
       const episodesTorrents = [].concat(...(await Promise.all(episodesPromises))).filter(filterSearch);
       const packsTorrents = [].concat(...(await Promise.all(packsPromises))).filter(torrent => filterSearch(torrent) && parseWords(torrent.name.toUpperCase()).includes(`S${numberPad(season)}`));
@@ -131,27 +131,13 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
     const limit = pLimit(5);
     torrents = await Promise.all(torrents.map(torrent => limit(async () => {
-
-      const startInfosDate = new Date();
       try {
-
-        torrent.infos = await Promise.race([
-          torrentInfos.get(torrent),
-          wait(33e3).then(() => Promise.reject(new Error(`Torrent infos timeout`)))
-        ]);
+        torrent.infos = await promiseTimeout(torrentInfos.get(torrent), Math.min(30, indexerTimeoutSec)*1000);
         return torrent;
-
       }catch(err){
-
         console.log(`${stremioId} Failed getting torrent infos for ${torrent.id} from indexer ${torrent.indexerId}`);
         console.log(`${stremioId} ${torrent.link.replace(/apikey=[a-z0-9\-]+/, 'apikey=****')}`, err);
         return false;
-
-      }finally{
-
-        const duration = new Date() - startInfosDate;
-        if(duration > 10e3)console.log(`${stremioId} : Slow (${duration / 1000}s) indexer detected (${torrent.indexerId}) when getting torrent infos`);
-
       }
     })));
     torrents = torrents.filter(torrent => torrent && torrent.infos)

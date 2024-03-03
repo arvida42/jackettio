@@ -38,6 +38,7 @@ export default {
     sortCached: sortCommaListToArray(process.env.DEFAULT_SORT_CACHED || 'quality:true, size:true'),
     sortUncached: sortCommaListToArray(process.env.DEFAULT_SORT_UNCACHED || 'seeders:true'),
     indexers: commaListToArray(process.env.DEFAULT_INDEXERS || 'all'),
+    indexerTimeoutSec: parseInt(process.env.DEFAULT_INDEXER_TIMEOUT_SEC || '60'),
     passkey: ''
   },
 
