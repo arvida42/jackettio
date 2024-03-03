@@ -37,8 +37,8 @@ export default class RealDebrid {
 
   async getProgressTorrents(torrents){
     const res = await this.#request('GET', '/torrents');
-    return res.value.reduce((progress, torrent) => {
-      progress[torrent.torrent.hash] = {
+    return res.reduce((progress, torrent) => {
+      progress[torrent.hash] = {
         percent: torrent.progress || 0,
         speed: torrent.speed || 0
       }
