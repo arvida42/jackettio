@@ -32,6 +32,7 @@ export default {
     qualities: commaListToArray(process.env.DEFAULT_QUALITIES || '0, 720, 1080').map(v => parseInt(v)),
     excludeKeywords: commaListToArray(process.env.DEFAULT_EXCLUDE_KEYWORDS || ''),
     maxTorrents: parseInt(process.env.DEFAULT_MAX_TORRENTS || 8),
+    priotizeLanguages: commaListToArray(process.env.DEFAULT_PRIOTIZE_LANGUAGES || ''),
     priotizePackTorrents:  parseInt(process.env.DEFAULT_PRIOTIZE_PACK_TORRENTS || 2),
     forceCacheNextEpisode: (process.env.DEFAULT_FORCE_CACHE_NEXT_EPISODE || 'false') === 'true',
     sortCached: sortCommaListToArray(process.env.DEFAULT_SORT_CACHED || 'quality:true, size:true'),
@@ -56,23 +57,24 @@ export default {
     {value: [['size', true]], label: 'By size'}
   ],
   languages: [
-    {value: 'MULTI',      emoji: '🌎', pattern: /multi/i},
-    {value: 'arabic',     emoji: '🇦🇪', pattern: /arabic/i},
-    {value: 'chinese',    emoji: '🇨🇳', pattern: /chinese/i},
-    {value: 'german',     emoji: '🇩🇪', pattern: /german/i},
-    {value: 'english',    emoji: '🇺🇸', pattern: /(eng(lish)?)/i},
-    {value: 'spanish',    emoji: '🇪🇸', pattern: /spa(nish)?/i},
-    {value: 'french',     emoji: '🇫🇷', pattern: /fre(nch)?/i},
-    {value: 'dutch',      emoji: '🇳🇱', pattern: /dutch/i},
-    {value: 'italian',    emoji: '🇮🇹', pattern: /ita(lian)?/i},
-    {value: 'korean',     emoji: '🇰🇷', pattern: /korean/i},
-    {value: 'portuguese', emoji: '🇵🇹', pattern: /portuguese/i},
-    {value: 'russian',    emoji: '🇷🇺', pattern: /rus(sian)?/i},
-    {value: 'swedish',    emoji: '🇸🇪', pattern: /swedish/i},
-    {value: 'tamil',      emoji: '🇮🇳', pattern: /tamil/i},
-    {value: 'turkish',    emoji: '🇹🇷', pattern: /turkish/i}
+    {value: 'multi',      emoji: '🌎', pattern: 'multi'},
+    {value: 'arabic',     emoji: '🇦🇪', pattern: 'arabic'},
+    {value: 'chinese',    emoji: '🇨🇳', pattern: 'chinese'},
+    {value: 'german',     emoji: '🇩🇪', pattern: 'german'},
+    {value: 'english',    emoji: '🇺🇸', pattern: '(eng(lish)?)'},
+    {value: 'spanish',    emoji: '🇪🇸', pattern: 'spa(nish)?'},
+    {value: 'french',     emoji: '🇫🇷', pattern: 'fre(nch)?'},
+    {value: 'dutch',      emoji: '🇳🇱', pattern: 'dutch'},
+    {value: 'italian',    emoji: '🇮🇹', pattern: 'ita(lian)?'},
+    {value: 'korean',     emoji: '🇰🇷', pattern: 'korean'},
+    {value: 'portuguese', emoji: '🇵🇹', pattern: 'portuguese'},
+    {value: 'russian',    emoji: '🇷🇺', pattern: 'rus(sian)?'},
+    {value: 'swedish',    emoji: '🇸🇪', pattern: 'swedish'},
+    {value: 'tamil',      emoji: '🇮🇳', pattern: 'tamil'},
+    {value: 'turkish',    emoji: '🇹🇷', pattern: 'turkish'}
   ].map(lang => {
     lang.label = `${lang.emoji} ${lang.value.charAt(0).toUpperCase() + lang.value.slice(1)}`;
+    lang.pattern = new RegExp(` ${lang.pattern} `, 'i');
     return lang;
   })
 }

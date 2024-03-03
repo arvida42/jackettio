@@ -60,6 +60,7 @@ app.get('/:userConfig?/configure', async(req, res) => {
     userConfig: req.params.userConfig || '',
     defaultUserConfig: config.defaultUserConfig,
     qualities: config.qualities,
+    languages: config.languages.map(l => ({value: l.value, label: l.label})).filter(v => v.value != 'multi'),
     sorts: config.sorts,
     indexers,
     passkey: {required: false},
@@ -135,7 +136,7 @@ app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
 
     const parsed = new URL(url);
     const cut = (value) => value ?  `${value.substr(0, 5)}******${value.substr(-5)}` : '';
-    console.log(`Redirect: ${parsed.protocol}://${parsed.host}${cut(parsed.pathname)}${cut(parsed.search)}`);
+    console.log(`Redirect: ${parsed.protocol}//${parsed.host}${cut(parsed.pathname)}${cut(parsed.search)}`);
     
     res.redirect(url);
     res.end();

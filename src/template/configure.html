@@ -75,6 +75,12 @@
             <input type="number" v-model="form.priotizePackTorrents" min="1" max="30" class="form-control">
             <small class="text-muted">This could increase the chance of cached torrents. 2 is a good number</small>
           </div>
+          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('priotizeLanguages')">
+            <label>Priotize languages</label>
+            <select v-model="form.priotizeLanguages" class="form-select" multiple>
+              <option v-for="language in languages" :value="language.value">{{language.label}}</option>
+            </select>
+          </div>
         </div>
         <h5>Debrid</h5>
         <div class="ps-2 border-start border-secondary-subtle">
@@ -107,14 +113,14 @@
       </form>
     </div>
 
-    <script src="https://unpkg.com/vue@3.4.19/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script type="text/javascript">/** import-config */</script>
     <script type="text/javascript">
       const { createApp, ref } = Vue
       createApp({
         setup() {
 
-          const {addon, debrids, defaultUserConfig, qualities, sorts, indexers, passkey, immulatableUserConfigKeys} = config;
+          const {addon, debrids, defaultUserConfig, qualities, languages, sorts, indexers, passkey, immulatableUserConfigKeys} = config;
 
           const debrid = ref({});
           const error = ref('');
@@ -136,7 +142,8 @@
             debridId: defaultUserConfig.debridId || '',
             sortCached: defaultUserConfig.sortCached,
             sortUncached: defaultUserConfig.sortUncached,
-            forceCacheNextEpisode: defaultUserConfig.forceCacheNextEpisode
+            forceCacheNextEpisode: defaultUserConfig.forceCacheNextEpisode,
+            priotizeLanguages: defaultUserConfig.priotizeLanguages
           };
           qualities.forEach(quality => quality.checked = defaultUserConfig.qualities.includes(quality.value));
           indexers.forEach(indexer => indexer.checked = defaultUserConfig.indexers.includes(indexer.id) || defaultUserConfig.indexers.includes('all'));
@@ -193,7 +200,8 @@
             manifestUrl,
             indexers,
             passkey,
-            immulatableUserConfigKeys
+            immulatableUserConfigKeys,
+            languages
           }
         }
       }).mount('#app')

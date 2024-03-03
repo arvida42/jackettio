@@ -33,6 +33,19 @@ function mergeDefaultUserConfig(userConfig){
   return Object.assign({}, config.defaultUserConfig, userConfig);
 }
 
+function priotizeItems(allItems, priotizeItems, max){
+  max = max || 0;
+  if(typeof(priotizeItems) == 'function'){
+    priotizeItems = allItems.filter(priotizeItems);
+    if(max > 0)priotizeItems.splice(max);
+  }
+  if(priotizeItems && priotizeItems.length){
+    allItems = allItems.filter(item => !priotizeItems.find(i => i == item));
+    allItems.unshift(...priotizeItems);
+  }
+  return allItems;
+}
+
 async function getTorrents(userConfig, metaInfos, debridInstance){
 
   while(actionInProgress.getTorrents[metaInfos.stremioId]){
@@ -42,7 +55,7 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
   try {
 
-    const {qualities, excludeKeywords, maxTorrents, sortCached, sortUncached, priotizePackTorrents} = userConfig;
+    const {qualities, excludeKeywords, maxTorrents, sortCached, sortUncached, priotizePackTorrents, priotizeLanguages} = userConfig;
     const {id, season, episode, type, stremioId} = metaInfos;
 
     let torrents = [];
@@ -57,6 +70,10 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
       if(excludeKeywords.find(word => torrentWords.includes(word)))return false;
       return true;
     };
+    const filterLanguage = (torrent) => {
+      if(priotizeLanguages.length == 0)return true;
+      return torrent.languages.find(lang => ['multi'].concat(priotizeLanguages).includes(lang.value));
+    }
 
     let indexers = (await jackett.getIndexers());
     let availableIndexers = indexers.filter(indexer => indexer.searching[type].available);
@@ -82,7 +99,9 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
       console.log(`${stremioId} : ${torrents.length} torrents found in ${(new Date() - startDate) / 1000}s`);
 
-      torrents = torrents.filter(filterSearch).sort(sortBy(...sortSearch)).slice(0, maxTorrents + 2);
+      torrents = torrents.filter(filterSearch).sort(sortBy(...sortSearch));
+      torrents = priotizeItems(torrents, filterLanguage, Math.max(1, Math.round(maxTorrents * 0.33)));
+      torrents = torrents.slice(0, maxTorrents + 2);
 
     }else if(type == 'series'){
 
@@ -96,7 +115,9 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
       console.log(`${stremioId} : ${torrents.length} torrents found in ${(new Date() - startDate) / 1000}s`);
 
-      torrents = torrents.filter(filterSearch).sort(sortBy(...sortSearch)).slice(0, maxTorrents + 2);
+      torrents = torrents.filter(filterSearch).sort(sortBy(...sortSearch));
+      torrents = priotizeItems(torrents, filterLanguage, Math.max(1, Math.round(maxTorrents * 0.33)));
+      torrents = torrents.slice(0, maxTorrents + 2);
 
       if(priotizePackTorrents > 0 && packsTorrents.length && !torrents.find(t => packsTorrents.includes(t))){
         const bestPackTorrents = packsTorrents.slice(0, Math.min(packsTorrents.length, priotizePackTorrents));
@@ -155,8 +176,8 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
         console.log(`${stremioId} : ${cachedTorrents.length} cached torrents on ${debridInstance.shortName}`);
 
-        torrents = [].concat(cachedTorrents.sort(sortBy(...sortCached)))
-                     .concat(uncachedTorrents.sort(sortBy(...sortUncached)));
+        torrents = [].concat(priotizeItems(cachedTorrents.sort(sortBy(...sortCached)), filterLanguage))
+                     .concat(priotizeItems(uncachedTorrents.sort(sortBy(...sortUncached)), filterLanguage));
       
         const progress = await debridInstance.getProgressTorrents(torrents);
         torrents.forEach(torrent => torrent.progress = progress[torrent.infos.infoHash] || null);
