@@ -89,9 +89,6 @@ JACKETT_API_KEY=API_KEY JACKETT_URL=http://localhost:9117 npm start
 ## Manual installation with Docker image
 
 ```sh
-# Create data folder
-mkdir data
-
 # Create env file
 touch .env
 
@@ -100,8 +97,16 @@ touch .env
 echo "JACKETT_URL=http://localhost:9117" >> .env
 echo "JACKETT_API_KEY=key" >> .env
 
+# Create data volume
+docker volume create jackettio_data
+
 # Run the container
-docker run --env-file .env -v ./data:/data -e DATA_FOLDER=/data --name jackettio -p 4000:4000 -d arvida42/jackettio:latest
+docker run --env-file .env \
+    -v jackettio_data:/data \
+    -e DATA_FOLDER=/data \
+    --name jackettio \
+    -p 4000:4000 \
+    -d arvida42/jackettio:latest
 ```
 
 ## Configuration
