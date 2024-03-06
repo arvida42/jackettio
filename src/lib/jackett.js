@@ -12,54 +12,54 @@ export const CATEGORY = {
 export async function searchMovieTorrents({indexer, name, year}){
 
   indexer = indexer || 'all';
-  let items = await cache.get(`jackettItems:movie:${indexer}:${name}:${year}`);
+  let items = await cache.get(`jackettItems:2:movie:${indexer}:${name}:${year}`);
 
   if(!items){
     const res = await jackettApi(
       `/api/v2.0/indexers/${indexer}/results/torznab/api`,
       {t: 'movie',q: name, year: year}
     );
-    items = normalizeItems(res?.rss?.channel?.item || []);
+    items = res?.rss?.channel?.item || [];
     cache.set(`jackettItems:movie:${indexer}:${name}:${year}`, items, {ttl: items.length > 0 ? 3600*36 : 60});
   }
 
-  return items;
+  return normalizeItems(items);
 
 }
 
 export async function searchSeasonTorrents({indexer, name, year, season}){
 
   indexer = indexer || 'all';
-  let items = await cache.get(`jackettItems:season:${indexer}:${name}:${year}:${season}`);
+  let items = await cache.get(`jackettItems:2:season:${indexer}:${name}:${year}:${season}`);
 
   if(!items){
     const res = await jackettApi(
       `/api/v2.0/indexers/${indexer}/results/torznab/api`,
       {t: 'tvsearch',q: `${name} S${numberPad(season)}`}
     );
-    items = normalizeItems(res?.rss?.channel?.item || []);
+    items = res?.rss?.channel?.item || [];
     cache.set(`jackettItems:season:${indexer}:${name}:${year}:${season}`, items, {ttl: items.length > 0 ? 3600*36 : 60});
   }
 
-  return items;
+  return normalizeItems(items);
 
 }
 
 export async function searchEpisodeTorrents({indexer, name, year, season, episode}){
 
   indexer = indexer || 'all';
-  let items = await cache.get(`jackettItems:episode:${indexer}:${name}:${year}:${season}:${episode}`);
+  let items = await cache.get(`jackettItems:2:episode:${indexer}:${name}:${year}:${season}:${episode}`);
 
   if(!items){
     const res = await jackettApi(
       `/api/v2.0/indexers/${indexer}/results/torznab/api`,
       {t: 'tvsearch',q: `${name} S${numberPad(season)}E${numberPad(episode)}`}
     );
-    items = normalizeItems(res?.rss?.channel?.item || []);
+    items = res?.rss?.channel?.item || [];
     cache.set(`jackettItems:episode:${indexer}:${name}:${year}:${season}:${episode}`, items, {ttl: items.length > 0 ? 3600*36 : 60});
   }
 
-  return items;
+  return normalizeItems(items);
 
 }
 
