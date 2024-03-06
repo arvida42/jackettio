@@ -57,8 +57,7 @@ export function isVideo(filename){
 export async function promiseTimeout(promise, ms){
   const ac = new AbortController();
   const waitPromise = setTimeout(ms, null, { signal: ac.signal }).then(() => Promise.reject(`Max execution time reached ${ms}`));
-  return Promise.race([waitPromise, promise.then(res => {
+  return Promise.race([waitPromise, promise.finally(() => {
     ac.abort();
-    return res;
   })]);
 }
