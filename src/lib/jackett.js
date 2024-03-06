@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import {Parser} from "xml2js";
 import config from './config.js';
 import cache from './cache.js';
-import {numberPad} from './util.js';
+import {numberPad, parseWords} from './util.js';
 
 export const CATEGORY = {
   MOVIE: 2000,
@@ -107,7 +107,7 @@ function normalizeItems(items){
       return obj;
     }, {});
     const quality = item.title.match(/(2160|1080|720|480|360)p/);
-    let languages = config.languages.filter(lang => item.title.match(lang.pattern));
+    const title = parseWords(item.title).join(' ');
     return {
       name: item.title,
       guid: item.guid,
@@ -121,7 +121,7 @@ function normalizeItems(items){
       magneturl: attr.magneturl || '', 
       type: item.type,
       quality: quality ? parseInt(quality[1]) : 0,
-      languages: languages
+      languages: config.languages.filter(lang => title.match(lang.pattern))
     };
   });
 }
