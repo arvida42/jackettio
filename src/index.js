@@ -95,7 +95,7 @@ app.get("/:userConfig?/manifest.json", async(req, res) => {
     version: addon.version,
     name: config.addonName,
     description: config.addonDescription,
-    icon: "https://avatars.githubusercontent.com/u/15383019?s=48&v=4",
+    icon: `${req.hostname == 'localhost' ? 'http' : 'https'}://${req.hostname}/icon`,
     resources: ["stream"],
     types: ["movie", "series"],
     idPrefixes: ["tt"],
