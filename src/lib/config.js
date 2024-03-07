@@ -13,6 +13,10 @@ export default {
   localtunnel: (process.env.LOCALTUNNEL || 'false') === 'true',
   // Addon ID
   addonId: process.env.ADDON_ID || 'community.stremio.jackettio',
+  // Addon Name
+  addonName: process.env.ADDON_NAME || 'Jackettio',
+  // Addon Description
+  addonDescription: process.env.ADDON_DESCRIPTION || 'Stremio addon that resolve streams using Jackett and Debrid. It seamlessly integrates with private trackers.',
   // When hosting an instance with a private tracker, you can configure this setting to:
   // - Request the user's passkey on the /configure page.
   // - Replace your passkey with theirs when sending uncached torrents to the debrid.
