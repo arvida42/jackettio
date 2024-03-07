@@ -159,6 +159,15 @@ case "$COMMAND" in
         ;;
 esac
 
+if [ -f "$ENV_FILE" ]; then
+    echo -e "\033[0;31mAn installation appears to already exist and will be overwritten ! ($ENV_FILE)\033[0m"
+    read -p "  Continue and overwrite ? (y/n): " continue
+    if [[ $continue != "yes" && $continue != "y" ]]; then
+        echo "Exiting..."
+        exit
+    fi
+fi
+
 cat <<-END
 
 This script will install compose and environments file in the following folder
@@ -173,6 +182,7 @@ if [[ $continue != "yes" && $continue != "y" ]]; then
 fi
 
 cat <<-END
+
 Please select an installation type:
 
     1) Using traefik
