@@ -22,7 +22,7 @@
           <div class="mb-3 alert alert-warning" v-if="indexers.length == 0">
             No indexers available, Jackett instance does not seem to be configured correctly.
           </div>
-          <div class="mb-3" v-if="indexers.length > 1 && !immulatableUserConfigKeys.includes('indexers')">
+          <div class="mb-3" v-if="indexers.length >= 1 && !immulatableUserConfigKeys.includes('indexers')">
             <label>Indexers enabled:</label>
             <div class="d-flex">
               <div v-for="indexer in indexers" class="me-3" :title="indexer.types.join(', ')">
@@ -108,8 +108,8 @@
             <input type="{{field.type}}" v-model="field.value" class="form-control">
           </div>
         </div>
-        <div class="mb-3 d-flex align-items-center">
-          <button @click="configure" type="button" class="btn btn-primary" :disabled="!debrid.id">Install</button>
+        <div class="my-3 d-flex align-items-center">
+          <button @click="configure" type="button" class="btn btn-primary" :disabled="!debrid.id">{{isUpdate ? 'Update' : 'Install'}}</button>
           <div v-if="error" class="text-danger ms-2">{{error}}</div>
           <div class="ms-auto">
             <a v-if="manifestUrl" :href="manifestUrl">Stremio Link</a>
@@ -130,6 +130,7 @@
           const debrid = ref({});
           const error = ref('');
           const manifestUrl = ref('');
+          let isUpdate = false;
 
           if(config.userConfig){
             try {
@@ -137,6 +138,7 @@
               Object.assign(defaultUserConfig, savedUserConfig);
               debrid.value = debrids.find(debrid => debrid.id == savedUserConfig.debridId) || {};
               debrid.value.configFields.forEach(field => field.value = savedUserConfig[field.name] || null);
+              isUpdate = true;
             }catch(err){}
           }
 
@@ -152,7 +154,7 @@
             indexerTimeoutSec: defaultUserConfig.indexerTimeoutSec
           };
           qualities.forEach(quality => quality.checked = defaultUserConfig.qualities.includes(quality.value));
-          indexers.forEach(indexer => indexer.checked = defaultUserConfig.indexers.includes(indexer.id) || defaultUserConfig.indexers.includes('all'));
+          indexers.forEach(indexer => indexer.checked = defaultUserConfig.indexers.includes(indexer.value) || defaultUserConfig.indexers.includes('all'));
 
           async function configure(){
             try {
@@ -207,7 +209,8 @@
             indexers,
             passkey,
             immulatableUserConfigKeys,
-            languages
+            languages,
+            isUpdate
           }
         }
       }).mount('#app')
