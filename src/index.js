@@ -1,10 +1,12 @@
 import showdown from 'showdown';
+import compression from 'compression';
 import express from 'express';
 import localtunnel from 'localtunnel';
 import {readFileSync} from "fs";
 import config from './lib/config.js';
 import cache from './lib/cache.js';
 import path from 'path';
+import * as icon from './lib/icon.js';
 import * as debrid from './lib/debrid.js';
 import {getIndexers} from './lib/jackett.js';
 import * as jackettio from "./lib/jackettio.js";
@@ -32,6 +34,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(compression());
 app.use(express.static(path.join(import.meta.dirname, 'static')));
 
 app.use((req, res, next) => {
@@ -42,6 +45,12 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.redirect('/configure')
   res.end();
+});
+
+app.get('/icon', async (req, res) => {
+  const filePath = await icon.getLocation();
+  res.contentType(path.basename(filePath));
+  return res.sendFile(filePath);
 });
 
 app.get('/:userConfig?/configure', async(req, res) => {
@@ -55,7 +64,7 @@ app.get('/:userConfig?/configure', async(req, res) => {
     debrids: await debrid.list(),
     addon: {
       version: addon.version,
-      name: addon.name.charAt(0).toUpperCase() + addon.name.slice(1)
+      name: config.addonName
     },
     userConfig: req.params.userConfig || '',
     defaultUserConfig: config.defaultUserConfig,
@@ -200,6 +209,7 @@ const server = app.listen(config.port, async () => {
     tunnel.on('close', () => console.log("tunnels are closed"));
   }
 
+  icon.download().catch(err => console.log(`Failed to download icon: ${err}`));
   createTorrentFolder();
   let cleanTorrentFolderInterval = setInterval(cleanTorrentFolder, 3600e3);
 
