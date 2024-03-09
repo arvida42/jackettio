@@ -44,6 +44,10 @@ export default class DebridLink {
     }, {});
   }
 
+  async getFilesFromHash(infoHash){
+    return this.getFilesFromMagnet(infoHash, infoHash);
+  }
+
   async getFilesFromMagnet(url, infoHash){
     const body = {url, async: true};
     const res = await this.#request('POST', `/seedbox/add`, {body});

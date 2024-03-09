@@ -19,9 +19,10 @@ export default {
   addonDescription: process.env.ADDON_DESCRIPTION || 'Stremio addon that resolve streams using Jackett and Debrid. It seamlessly integrates with private trackers.',
   // Addon Icon
   addonIcon: process.env.ADDON_ICON || 'https://avatars.githubusercontent.com/u/15383019?s=48&v=4',
-  // When hosting an instance with a private tracker, you can configure this setting to:
+  // When hosting a public instance with a private tracker, you must configure this setting to:
   // - Request the user's passkey on the /configure page.
-  // - Replace your passkey with theirs when sending uncached torrents to the debrid.
+  // - Replace your passkey "REPLACE_PASSKEY" with theirs when sending uncached torrents to the debrid.
+  // If you do not configure this setting with private tracker, your passkey could be exposed to users who add uncached torrents.
   replacePasskey: process.env.REPLACE_PASSKEY || '',
   // The URL where the user can locate their passkey (typically the tracker URL).
   replacePasskeyInfoUrl: process.env.REPLACE_PASSKEY_INFO_URL || '',

@@ -53,6 +53,10 @@ export default class RealDebrid {
     }, {});
   }
 
+  async getFilesFromHash(infoHash){
+    return this.getFilesFromMagnet(infoHash, infoHash);
+  }
+
   async getFilesFromMagnet(magnet, infoHash){
     const torrentId = await this.#searchTorrentIdByHash(infoHash);
     if(torrentId)return this.#getFilesFromTorrent(torrentId);

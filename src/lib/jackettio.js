@@ -168,6 +168,15 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
         });
         const uncachedTorrents = torrents.filter(torrent => cachedTorrents.indexOf(torrent) === -1);
 
+        if(config.replacePasskey && !(userConfig.passkey && passkey.match(new RegExp(config.replacePasskeyPattern)))){
+          uncachedTorrents.forEach(torrent => {
+            if(torrent.infos.private){
+              torrent.disabled = true;
+              torrent.infoText = 'Uncached torrent require a passkey configuration';
+            }
+          });
+        }
+
         console.log(`${stremioId} : ${cachedTorrents.length} cached torrents on ${debridInstance.shortName}`);
 
         torrents = [].concat(priotizeItems(cachedTorrents.sort(sortBy(...sortCached)), filterLanguage))
@@ -210,8 +219,8 @@ async function prepareNextEpisode(userConfig, metaInfos, debridInstance){
       // Cache next episode on debrid when not cached
       if(userConfig.forceCacheNextEpisode && torrents.length && !torrents.find(torrent => torrent.isCached)){
         console.log(`${stremioId} : Force cache next episode (${metaInfos.episode}) on debrid`);
-        const bestTorrent = torrents[0];
-        await getDebridFiles(userConfig, bestTorrent.infos, debridInstance);
+        const bestTorrent = torrents.find(torrent => !torrent.disabled);
+        if(bestTorrent)await getDebridFiles(userConfig, bestTorrent.infos, debridInstance);
       }
 
     }
@@ -237,10 +246,17 @@ async function getDebridFiles(userConfig, infos, debridInstance){
     let buffer = await torrentInfos.getTorrentFile(infos);
 
     if(config.replacePasskey){
+
+      if(infos.private && !userConfig.passkey){
+        return debridInstance.getFilesFromHash(infos.infoHash);
+      }
+
       if(!userConfig.passkey.match(new RegExp(config.replacePasskeyPattern))){
         throw new Error(`Invalid user passkey, pattern not match: ${config.replacePasskeyPattern}`);
       }
+
       buffer = Buffer.from(buffer.toString('binary').replace(new RegExp(config.replacePasskey, 'g'), userConfig.passkey), 'binary');
+
     }
 
     return debridInstance.getFilesFromBuffer(buffer, infos.infoHash);
@@ -266,6 +282,7 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
 
   return torrents.map(torrent => {
     let infos = [];
+    if(torrent.infoText)infos.push(`ℹ ${torrent.infoText}`);
     infos.push(bytesToSize(torrent.size), `${torrent.seeders} seeders`);
     if(torrent.languages && torrent.languages.length){
       infos.push((torrent.languages || []).map(language => language.emoji).join(' ') +' ');
@@ -276,7 +293,7 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
     return {
       name: `[${debridInstance.shortName}${torrent.isCached ? '+' : ''}] jackettio`,
       title: `${torrent.name}\n${infos.join(' - ')}`,
-      url: `${publicUrl}/${btoa(JSON.stringify(userConfig))}/download/${type}/${stremioId}/${torrent.id}`
+      url: torrent.disabled ? '#' : `${publicUrl}/${btoa(JSON.stringify(userConfig))}/download/${type}/${stremioId}/${torrent.id}`
     };
   });
 

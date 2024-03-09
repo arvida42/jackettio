@@ -37,10 +37,11 @@
             <input type="number" v-model="form.indexerTimeoutSec" min="6" max="120" class="form-control">
             <small class="text-muted">Max execution time in seconds before timeout.</small>
           </div>
-          <div class="mb-3" v-if="passkey && passkey.required">
-            <label>Tracker passkey</label>
+          <div class="mb-3" v-if="passkey && passkey.enabled">
+            <label>Private indexer Passkey <i>(Recommended)</i></label>
             <small v-if="passkey.infoUrl" class="ms-2"><a :href="passkey.infoUrl" target="_blank" rel="noreferrer">Get It here</a></small>
             <input type="text" v-model="form.passkey" class="form-control" :pattern="passkey.pattern">
+            <small class="text-muted">With the Passkey you can stream both cached and uncached torrents, while without the Passkey you can only stream cached torrents.</small>
           </div>
         </div>
         <h5>Filters & Sorts</h5>
@@ -181,11 +182,8 @@
                 throw new Error(`Indexer is required`);
               }
 
-              if(passkey && passkey.required){
-                if(!userConfig.passkey){
-                  throw new Error(`Tracker passkey required`);
-                }
-                if(!userConfig.passkey.match(new RegExp(passkey.pattern))){
+              if(passkey.enabled){
+                if(userConfig.passkey && !userConfig.passkey.match(new RegExp(passkey.pattern))){
                   throw new Error(`Tracker passkey have invalid format: ${passkey.pattern}`);
                 }
               }

@@ -43,6 +43,10 @@ export default class AllDebrid {
     }, {});
   }
 
+  async getFilesFromHash(infoHash){
+    return this.getFilesFromMagnet(infoHash, infoHash);
+  }
+
   async getFilesFromMagnet(url, infoHash){
     const body = new FormData();
     body.append('magnets[]', url);

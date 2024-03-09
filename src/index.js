@@ -72,12 +72,12 @@ app.get('/:userConfig?/configure', async(req, res) => {
     languages: config.languages.map(l => ({value: l.value, label: l.label})).filter(v => v.value != 'multi'),
     sorts: config.sorts,
     indexers,
-    passkey: {required: false},
+    passkey: {enabled: false},
     immulatableUserConfigKeys: config.immulatableUserConfigKeys
   };
   if(config.replacePasskey){
     templateConfig.passkey = {
-      required: true,
+      enabled: true,
       infoUrl: config.replacePasskeyInfoUrl,
       pattern: config.replacePasskeyPattern
     }
