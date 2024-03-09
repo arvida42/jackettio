@@ -168,7 +168,7 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
         });
         const uncachedTorrents = torrents.filter(torrent => cachedTorrents.indexOf(torrent) === -1);
 
-        if(config.replacePasskey && !(userConfig.passkey && passkey.match(new RegExp(config.replacePasskeyPattern)))){
+        if(config.replacePasskey && !(userConfig.passkey && userConfig.passkey.match(new RegExp(config.replacePasskeyPattern)))){
           uncachedTorrents.forEach(torrent => {
             if(torrent.infos.private){
               torrent.disabled = true;
