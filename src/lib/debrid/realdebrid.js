@@ -184,6 +184,8 @@ export default class RealDebrid {
       switch(data.error_code){
         case 8:
           throw new Error(ERROR.EXPIRED_API_KEY);
+        case 9:
+          throw new Error(ERROR.ACCESS_DENIED);
         case 20:
           throw new Error(ERROR.NOT_PREMIUM);
         default:

@@ -125,7 +125,7 @@ app.get("/:userConfig/stream/:type/:id.json", async(req, res) => {
 
   }catch(err){
 
-    console.log(err);
+    console.log(req.params.id, err);
     return respond(res, {streams: []});
 
   }
@@ -145,14 +145,14 @@ app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
 
     const parsed = new URL(url);
     const cut = (value) => value ?  `${value.substr(0, 5)}******${value.substr(-5)}` : '';
-    console.log(`Redirect: ${parsed.protocol}//${parsed.host}${cut(parsed.pathname)}${cut(parsed.search)}`);
+    console.log(`${req.params.id} : Redirect: ${parsed.protocol}//${parsed.host}${cut(parsed.pathname)}${cut(parsed.search)}`);
     
     res.redirect(url);
     res.end();
 
   }catch(err){
 
-    console.log(err);
+    console.log(req.params.id, err);
 
     switch(err.message){
       case debrid.ERROR.NOT_READY:
@@ -165,6 +165,10 @@ app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
         break;
       case debrid.ERROR.NOT_PREMIUM:
         res.redirect(`/videos/not_premium.mp4`);
+        res.end();
+        break;
+      case debrid.ERROR.ACCESS_DENIED:
+        res.redirect(`/videos/access_denied.mp4`);
         res.end();
         break;
       default:
