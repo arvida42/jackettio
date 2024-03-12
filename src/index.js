@@ -132,6 +132,16 @@ app.get("/:userConfig/stream/:type/:id.json", async(req, res) => {
 
 });
 
+app.get("/stream/:type/:id.json", async(req, res) => {
+
+  return respond(res, {streams: [{
+    name: config.addonName,
+    title: `ℹ Kindly configure this addon to access streams.`,
+    url: '#'
+  }]});
+
+});
+
 app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
 
   try {
