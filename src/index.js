@@ -35,12 +35,7 @@ app.use((req, res, next) => {
 });
 
 app.use(compression());
-app.use(express.static(path.join(import.meta.dirname, 'static')));
-
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path.replace(/\/eyJ[\w\=]+/g, '/*******************')}`);
-  next();
-});
+app.use(express.static(path.join(import.meta.dirname, 'static'), {maxAge: 86400e3}));
 
 app.get('/', (req, res) => {
   res.redirect('/configure')
@@ -50,7 +45,13 @@ app.get('/', (req, res) => {
 app.get('/icon', async (req, res) => {
   const filePath = await icon.getLocation();
   res.contentType(path.basename(filePath));
+  res.setHeader('Cache-Control', `public, max-age=${3600}`);
   return res.sendFile(filePath);
+});
+
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path.replace(/\/eyJ[\w\=]+/g, '/*******************')}`);
+  next();
 });
 
 app.get('/:userConfig?/configure', async(req, res) => {
