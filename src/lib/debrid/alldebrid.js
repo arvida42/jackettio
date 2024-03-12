@@ -119,7 +119,11 @@ export default class AllDebrid {
         case 'AUTH_BAD_APIKEY':
         case 'AUTH_MISSING_APIKEY':
           throw new Error(ERROR.EXPIRED_API_KEY);
+        case 'AUTH_BLOCKED':
+          throw new Error(ERROR.TWO_FACTOR_AUTH);
         case 'MAGNET_MUST_BE_PREMIUM':
+        case 'FREE_TRIAL_LIMIT_REACHED':
+        case 'MUST_BE_PREMIUM':
           throw new Error(ERROR.NOT_PREMIUM);
         default:
           throw new Error(`Invalid AD api result: ${JSON.stringify(data)}`);

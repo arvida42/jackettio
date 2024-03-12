@@ -186,6 +186,9 @@ export default class RealDebrid {
           throw new Error(ERROR.EXPIRED_API_KEY);
         case 9:
           throw new Error(ERROR.ACCESS_DENIED);
+        case 10:
+        case 11:
+          throw new Error(ERROR.TWO_FACTOR_AUTH);
         case 20:
           throw new Error(ERROR.NOT_PREMIUM);
         default:

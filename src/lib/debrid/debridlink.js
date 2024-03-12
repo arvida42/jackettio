@@ -124,6 +124,10 @@ export default class DebridLink {
       switch(data.error || ''){
         case 'badToken':
           throw new Error(ERROR.EXPIRED_API_KEY);
+        case 'maxLink':
+        case 'maxLinkHost':
+        case 'maxData':
+        case 'maxDataHost':
         case 'maxTorrent':
         case 'torrentTooBig':
         case 'freeServerOverload':

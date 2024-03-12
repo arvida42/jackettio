@@ -171,6 +171,10 @@ app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
         res.redirect(`/videos/access_denied.mp4`);
         res.end();
         break;
+      case debrid.ERROR.TWO_FACTOR_AUTH:
+        res.redirect(`/videos/two_factor_auth.mp4`);
+        res.end();
+        break;
       default:
         res.redirect(`/videos/error.mp4`);
         res.end();
