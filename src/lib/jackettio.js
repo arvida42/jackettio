@@ -255,7 +255,14 @@ async function getDebridFiles(userConfig, infos, debridInstance){
         throw new Error(`Invalid user passkey, pattern not match: ${config.replacePasskeyPattern}`);
       }
 
-      buffer = Buffer.from(buffer.toString('binary').replace(new RegExp(config.replacePasskey, 'g'), userConfig.passkey), 'binary');
+      const from = buffer.toString('binary');
+      let to = from.replace(new RegExp(config.replacePasskey, 'g'), userConfig.passkey);
+      const diffLength = from.length - to.length;
+      const announceLength = from.match(/:announce([\d]+):/);
+      if(diffLength && announceLength && announceLength[1]){
+        to = to.replace(announceLength[0], `:announce${parseInt(announceLength[1]) - diffLength}:`);
+      }
+      buffer = Buffer.from(to, 'binary');
 
     }
 
@@ -325,9 +332,9 @@ export async function getDownload(userConfig, type, stremioId, torrentId){
     download = await cache.get(cacheKey);
     if(download)return download;
 
-    console.log(`${stremioId} : get files ...`);
+    console.log(`${stremioId} : ${debridInstance.shortName} : ${infos.infoHash} : get files ...`);
     files = await getDebridFiles(userConfig, infos, debridInstance);
-    console.log(`${stremioId} : ${files.length} files found`);
+    console.log(`${stremioId} : ${debridInstance.shortName} : ${infos.infoHash} : ${files.length} files found`);
 
     files = files.sort(sortBy('size', true));
 
