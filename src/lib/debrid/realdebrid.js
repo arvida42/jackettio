@@ -54,7 +54,7 @@ export default class RealDebrid {
   }
 
   async getFilesFromHash(infoHash){
-    return this.getFilesFromMagnet(infoHash, infoHash);
+    return this.getFilesFromMagnet(`magnet:?xt=urn:btih:${infoHash}`, infoHash);
   }
 
   async getFilesFromMagnet(magnet, infoHash){
@@ -121,7 +121,7 @@ export default class RealDebrid {
   }
 
   // Return false when a non video file is available in the cache to avoid rar files
-  async #isVideoCache(cache){
+  #isVideoCache(cache){
     return !Object.values(cache).find(file => !isVideo(file.filename));
   }
 
