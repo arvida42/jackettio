@@ -291,7 +291,7 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
       infos.push(`${torrent.progress.percent}%`, `${bytesToSize(torrent.progress.speed)}/s`);
     }
     return {
-      name: `[${debridInstance.shortName}${torrent.isCached ? '+' : ''}] jackettio`,
+      name: `[${debridInstance.shortName}${torrent.isCached ? '+' : ''}] ${config.addonName}`,
       title: `${torrent.name}\n${infos.join(' - ')}`,
       url: torrent.disabled ? '#' : `${publicUrl}/${btoa(JSON.stringify(userConfig))}/download/${type}/${stremioId}/${torrent.id}`
     };
