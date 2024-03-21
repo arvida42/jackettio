@@ -189,6 +189,13 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
         console.log(`${stremioId} : ${debridInstance.shortName} : ${err.message || err}`);
 
+        if(err.message == debrid.ERROR.EXPIRED_API_KEY){
+          torrents.forEach(torrent => {
+            torrent.disabled = true;
+            torrent.infoText = 'Unable to verify cache (+): Expired Debrid API Key.';
+          });
+        }
+
       }
 
     }
