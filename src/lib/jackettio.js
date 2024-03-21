@@ -317,7 +317,7 @@ export async function getDownload(userConfig, type, stremioId, torrentId){
   const debridInstance = debrid.instance(userConfig);
   const infos = await torrentInfos.getById(torrentId);
   const {id, season, episode} = parseStremioId(stremioId);
-  const cacheKey = `download:${await debridInstance.getUserHash()}:${stremioId}:${torrentId}`;
+  const cacheKey = `download:2:${await debridInstance.getUserHash()}:${stremioId}:${torrentId}`;
   let files;
   let download;
   let waitMs = 0;
@@ -349,7 +349,7 @@ export async function getDownload(userConfig, type, stremioId, torrentId){
 
     }else if(type == 'series'){
 
-      let bestFile = searchEpisodeFile(files) || files[0];
+      let bestFile = searchEpisodeFile(files, season, episode) || files[0];
       download = await debridInstance.getDownload(bestFile);
 
     }
