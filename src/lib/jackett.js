@@ -12,7 +12,8 @@ export const CATEGORY = {
 export async function searchMovieTorrents({indexer, name, year}){
 
   indexer = indexer || 'all';
-  let items = await cache.get(`jackettItems:2:movie:${indexer}:${name}:${year}`);
+  const cacheKey = `jackettItems:2:movie:${indexer}:${name}:${year}`;
+  let items = await cache.get(cacheKey);
 
   if(!items){
     const res = await jackettApi(
@@ -20,7 +21,7 @@ export async function searchMovieTorrents({indexer, name, year}){
       {t: 'movie',q: name, year: year}
     );
     items = res?.rss?.channel?.item || [];
-    cache.set(`jackettItems:movie:${indexer}:${name}:${year}`, items, {ttl: items.length > 0 ? 3600*36 : 60});
+    cache.set(cacheKey, items, {ttl: items.length > 0 ? 3600*36 : 60});
   }
 
   return normalizeItems(items);
@@ -30,7 +31,8 @@ export async function searchMovieTorrents({indexer, name, year}){
 export async function searchSeasonTorrents({indexer, name, year, season}){
 
   indexer = indexer || 'all';
-  let items = await cache.get(`jackettItems:2:season:${indexer}:${name}:${year}:${season}`);
+  const cacheKey = `jackettItems:2:season:${indexer}:${name}:${year}:${season}`;
+  let items = await cache.get(cacheKey);
 
   if(!items){
     const res = await jackettApi(
@@ -38,7 +40,7 @@ export async function searchSeasonTorrents({indexer, name, year, season}){
       {t: 'tvsearch',q: `${name} S${numberPad(season)}`}
     );
     items = res?.rss?.channel?.item || [];
-    cache.set(`jackettItems:season:${indexer}:${name}:${year}:${season}`, items, {ttl: items.length > 0 ? 3600*36 : 60});
+    cache.set(cacheKey, items, {ttl: items.length > 0 ? 3600*36 : 60});
   }
 
   return normalizeItems(items);
@@ -48,7 +50,8 @@ export async function searchSeasonTorrents({indexer, name, year, season}){
 export async function searchEpisodeTorrents({indexer, name, year, season, episode}){
 
   indexer = indexer || 'all';
-  let items = await cache.get(`jackettItems:2:episode:${indexer}:${name}:${year}:${season}:${episode}`);
+  const cacheKey = `jackettItems:2:episode:${indexer}:${name}:${year}:${season}:${episode}`;
+  let items = await cache.get(cacheKey);
 
   if(!items){
     const res = await jackettApi(
@@ -56,7 +59,7 @@ export async function searchEpisodeTorrents({indexer, name, year, season, episod
       {t: 'tvsearch',q: `${name} S${numberPad(season)}E${numberPad(episode)}`}
     );
     items = res?.rss?.channel?.item || [];
-    cache.set(`jackettItems:episode:${indexer}:${name}:${year}:${season}:${episode}`, items, {ttl: items.length > 0 ? 3600*36 : 60});
+    cache.set(cacheKey, items, {ttl: items.length > 0 ? 3600*36 : 60});
   }
 
   return normalizeItems(items);
