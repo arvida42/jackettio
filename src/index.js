@@ -4,7 +4,7 @@ import express from 'express';
 import localtunnel from 'localtunnel';
 import {readFileSync} from "fs";
 import config from './lib/config.js';
-import cache from './lib/cache.js';
+import cache, {vacuum as vacuumCache, clean as cleanCache} from './lib/cache.js';
 import path from 'path';
 import * as icon from './lib/icon.js';
 import * as debrid from './lib/debrid.js';
@@ -229,13 +229,19 @@ const server = app.listen(config.port, async () => {
   }
 
   icon.download().catch(err => console.log(`Failed to download icon: ${err}`));
+
   createTorrentFolder();
-  let cleanTorrentFolderInterval = setInterval(cleanTorrentFolder, 3600e3);
+  setInterval(cleanTorrentFolder, 3600e3);
+
+  vacuumCache().catch(err => console.log(`Failed to vacuum cache: ${err}`));
+  setInterval(() => vacuumCache(), 86400e3*2);
+
+  cleanCache().catch(err => console.log(`Failed to clean cache: ${err}`));
+  setInterval(() => cleanCache(), 3600e3);
 
   function closeGracefully(signal) {
     console.log(`Received signal to terminate: ${signal}`);
     if(tunnel)tunnel.close();
-    clearInterval(cleanTorrentFolderInterval);
     server.close(() => {
       console.log('Server closed');
       process.kill(process.pid, signal);

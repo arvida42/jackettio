@@ -22,6 +22,7 @@
     "p-limit": "^5.0.0",
     "parse-torrent": "^11.0.16",
     "showdown": "^2.1.0",
+    "sqlite3": "^5.1.1",
     "xml2js": "^0.6.2"
   }
 }
