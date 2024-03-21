@@ -295,18 +295,16 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
   }
 
   return torrents.map(torrent => {
-    let infos = [];
-    if(torrent.infoText)infos.push(`ℹ ${torrent.infoText}`);
-    infos.push(bytesToSize(torrent.size), `${torrent.seeders} seeders`);
-    if(torrent.languages && torrent.languages.length){
-      infos.push((torrent.languages || []).map(language => language.emoji).join(' ') +' ');
-    }
+    const quality = torrent.quality > 0 ? config.qualities.find(q => q.value == torrent.quality).label : '';
+    const rows = [torrent.name];
+    if(torrent.infoText)rows.push(`ℹ️ ${torrent.infoText}`);
+    rows.push([`💾${bytesToSize(torrent.size)}`, `👥${torrent.seeders}`, ...(torrent.languages || []).map(language => language.emoji)].join(' '));
     if(torrent.progress && !torrent.isCached){
-      infos.push(`${torrent.progress.percent}%`, `${bytesToSize(torrent.progress.speed)}/s`);
+      rows.push(`⬇️ ${torrent.progress.percent}% ${bytesToSize(torrent.progress.speed)}/s`);
     }
     return {
-      name: `[${debridInstance.shortName}${torrent.isCached ? '+' : ''}] ${config.addonName}`,
-      title: `${torrent.name}\n${infos.join(' - ')}`,
+      name: `[${debridInstance.shortName}${torrent.isCached ? '+' : ''}] ${config.addonName} ${quality}`,
+      title: rows.join("\n"),
       url: torrent.disabled ? '#' : `${publicUrl}/${btoa(JSON.stringify(userConfig))}/download/${type}/${stremioId}/${torrent.id}`
     };
   });
