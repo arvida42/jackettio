@@ -7,7 +7,7 @@ import cache from './cache.js';
 import config from './config.js';
 
 const TORRENT_FOLDER = `${config.dataFolder}/torrents`;
-const CACHE_FILE_DAYS = 14;
+const CACHE_FILE_DAYS = 7;
 
 export async function createTorrentFolder(){
   return mkdir(TORRENT_FOLDER).catch(() => false);
