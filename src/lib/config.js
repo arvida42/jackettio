@@ -34,6 +34,10 @@ export default {
   welcomeMessage: process.env.WELCOME_MESSAGE || '',
   // Trust the cf-connecting-ip header
   trustCfIpHeader: (process.env.TRUST_CF_IP_HEADER || 'false') === 'true',
+  // Rate limit interval in seconds to resolve stream
+  rateLimitWindow: parseInt(process.env.RATE_LIMIT_WINDOW || 60 * 60),
+  // Rate limit the number of requests to resolve stream
+  rateLimitRequest: parseInt(process.env.RATE_LIMIT_REQUEST || 150),
 
   defaultUserConfig: {
     qualities: commaListToArray(process.env.DEFAULT_QUALITIES || '0, 720, 1080').map(v => parseInt(v)),

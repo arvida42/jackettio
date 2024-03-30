@@ -2,6 +2,7 @@ import showdown from 'showdown';
 import compression from 'compression';
 import express from 'express';
 import localtunnel from 'localtunnel';
+import { rateLimit } from 'express-rate-limit';
 import {readFileSync} from "fs";
 import config from './lib/config.js';
 import cache, {vacuum as vacuumCache, clean as cleanCache} from './lib/cache.js';
@@ -22,7 +23,27 @@ const respond = (res, data) => {
   res.setHeader('Access-Control-Allow-Headers', '*')
   res.setHeader('Content-Type', 'application/json')
   res.send(data)
-}
+};
+
+const limiter = rateLimit({
+  windowMs: config.rateLimitWindow * 1000,
+  max: config.rateLimitRequest,
+  legacyHeaders: false,
+  standardHeaders: 'draft-7',
+  keyGenerator: (req) => req.clientIp || req.ip,
+  handler: (req, res, next, options) => {
+    if(req.route.path == '/:userConfig/stream/:type/:id.json'){
+      const resetInMs = new Date(req.rateLimit.resetTime) - new Date();
+      return res.json({streams: [{
+        name: `${config.addonName}`,
+        title: `🛑 Too many requests, please try in ${Math.ceil(resetInMs / 1000 / 60)} minute(s).`,
+        url: '#'
+      }]})
+    }else{
+      return res.status(options.statusCode).send(options.message);
+    }
+  }
+});
 
 app.set('trust proxy', config.trustProxy);
 
@@ -111,7 +132,7 @@ app.get("/:userConfig?/manifest.json", async(req, res) => {
   respond(res, manifest);
 });
 
-app.get("/:userConfig/stream/:type/:id.json", async(req, res) => {
+app.get("/:userConfig/stream/:type/:id.json", limiter, async(req, res) => {
 
   try {
 
@@ -234,7 +255,7 @@ const server = app.listen(config.port, async () => {
   setInterval(cleanTorrentFolder, 3600e3);
 
   vacuumCache().catch(err => console.log(`Failed to vacuum cache: ${err}`));
-  setInterval(() => vacuumCache(), 86400e3*2);
+  setInterval(() => vacuumCache(), 86400e3*7);
 
   cleanCache().catch(err => console.log(`Failed to clean cache: ${err}`));
   setInterval(() => cleanCache(), 3600e3);
