@@ -113,10 +113,34 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
     }else if(type == 'series'){
 
       const episodesPromises = indexers.map(indexer => promiseTimeout(jackett.searchEpisodeTorrents({...metaInfos, indexer: indexer.id}), indexerTimeoutSec*1000).catch(err => []));
-      const packsPromises = indexers.map(indexer => promiseTimeout(jackett.searchSeasonTorrents({...metaInfos, indexer: indexer.id}), indexerTimeoutSec*1000).catch(err => []));
+      // const packsPromises = indexers.map(indexer => promiseTimeout(jackett.searchSeasonTorrents({...metaInfos, indexer: indexer.id}), indexerTimeoutSec*1000).catch(err => []));
+      const packsPromises = indexers.map(indexer => promiseTimeout(jackett.searchSerieTorrents({...metaInfos, indexer: indexer.id}), indexerTimeoutSec*1000).catch(err => []));
 
       const episodesTorrents = [].concat(...(await Promise.all(episodesPromises))).filter(filterSearch);
-      const packsTorrents = [].concat(...(await Promise.all(packsPromises))).filter(torrent => filterSearch(torrent) && parseWords(torrent.name.toUpperCase()).includes(`S${numberPad(season)}`));
+      // const packsTorrents = [].concat(...(await Promise.all(packsPromises))).filter(torrent => filterSearch(torrent) && parseWords(torrent.name.toUpperCase()).includes(`S${numberPad(season)}`));
+      const packsTorrents = [].concat(...(await Promise.all(packsPromises))).filter(torrent => {
+        if(!filterSearch(torrent))return false;
+        const words = parseWords(torrent.name.toLowerCase());
+        const wordsStr = words.join(' ');
+        if(
+          // Season x
+          wordsStr.includes(`season ${season}`)
+          // SXX
+          || words.includes(`s${numberPad(season)}`)
+        ){
+          return true;
+        }
+        // From SXX to SXX
+        const range = wordsStr.match(/s([\d]{2,}) s([\d]{2,})/);
+        if(range && season >= parseInt(range[1]) && season <= parseInt(range[2])){
+          return true;
+        }
+        // Complete without season number (serie pack)
+        if(words.includes('complete') && !wordsStr.match(/ (s[\d]{2,}|season [\d]) /)){
+          return true;
+        }
+        return false;
+      });
 
       torrents = [].concat(episodesTorrents, packsTorrents);
 

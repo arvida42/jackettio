@@ -28,6 +28,25 @@ export async function searchMovieTorrents({indexer, name, year}){
 
 }
 
+export async function searchSerieTorrents({indexer, name, year}){
+
+  indexer = indexer || 'all';
+  const cacheKey = `jackettItems:2:serie:${indexer}:${name}:${year}`;
+  let items = await cache.get(cacheKey);
+
+  if(!items){
+    const res = await jackettApi(
+      `/api/v2.0/indexers/${indexer}/results/torznab/api`,
+      {t: 'tvsearch',q: `${name}`}
+    );
+    items = res?.rss?.channel?.item || [];
+    cache.set(cacheKey, items, {ttl: items.length > 0 ? 3600*36 : 60});
+  }
+
+  return normalizeItems(items);
+
+}
+
 export async function searchSeasonTorrents({indexer, name, year, season}){
 
   indexer = indexer || 'all';
