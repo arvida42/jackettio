@@ -251,18 +251,20 @@ const server = app.listen(config.port, async () => {
 
   icon.download().catch(err => console.log(`Failed to download icon: ${err}`));
 
+  const intervals = [];
   createTorrentFolder();
-  setInterval(cleanTorrentFolder, 3600e3);
+  intervals.push(setInterval(cleanTorrentFolder, 3600e3));
 
   vacuumCache().catch(err => console.log(`Failed to vacuum cache: ${err}`));
-  setInterval(() => vacuumCache(), 86400e3*7);
+  intervals.push(setInterval(() => vacuumCache(), 86400e3*7));
 
   cleanCache().catch(err => console.log(`Failed to clean cache: ${err}`));
-  setInterval(() => cleanCache(), 3600e3);
+  intervals.push(setInterval(() => cleanCache(), 3600e3));
 
   function closeGracefully(signal) {
     console.log(`Received signal to terminate: ${signal}`);
     if(tunnel)tunnel.close();
+    intervals.forEach(interval => clearInterval(interval));
     server.close(() => {
       console.log('Server closed');
       process.kill(process.pid, signal);
