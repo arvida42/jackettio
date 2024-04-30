@@ -322,7 +322,8 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
     const quality = torrent.quality > 0 ? config.qualities.find(q => q.value == torrent.quality).label : '';
     const rows = [torrent.name];
     if(torrent.infoText)rows.push(`ℹ️ ${torrent.infoText}`);
-    rows.push([`💾${bytesToSize(torrent.size)}`, `👥${torrent.seeders}`, ...(torrent.languages || []).map(language => language.emoji)].join(' '));
+    const file = type == 'series' && torrent.infos.files.length ? searchEpisodeFile(torrent.infos.files.sort(sortBy('size', true)), season, episode) : {}; 
+    rows.push([`💾${bytesToSize(file.size || torrent.size)}`, `👥${torrent.seeders}`, ...(torrent.languages || []).map(language => language.emoji)].join(' '));
     if(torrent.progress && !torrent.isCached){
       rows.push(`⬇️ ${torrent.progress.percent}% ${bytesToSize(torrent.progress.speed)}/s`);
     }
