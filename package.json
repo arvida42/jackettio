@@ -1,6 +1,6 @@
 {
   "name": "jackettio",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Jackett and Debrid on Stremio",
   "main": "src/index.js",
   "type": "module",
