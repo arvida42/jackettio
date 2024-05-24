@@ -18,10 +18,12 @@ export default class AllDebrid {
   ];
 
   #apiKey;
+  #ip;
 
   constructor(userConfig) {
     Object.assign(this, this.constructor);
     this.#apiKey = userConfig.debridApiKey;
+    this.#ip = userConfig.ip || '';
   }
 
   async getTorrentsCached(torrents){
@@ -105,7 +107,8 @@ export default class AllDebrid {
         'authorization': `Bearer ${this.#apiKey}`
       }, opts.headers || {}),
       query: Object.assign({
-        'agent': 'jackettio'
+        'agent': 'jackettio',
+        'ip': this.#ip
       }, opts.query || {})
     });
 
