@@ -164,7 +164,11 @@ app.get("/stream/:type/:id.json", async(req, res) => {
 
 });
 
-app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
+app.use('/:userConfig/download/:type/:id/:torrentId', async(req, res, next) => {
+
+  if (req.method !== 'GET' && req.method !== 'HEAD'){
+    return next();
+  }
 
   try {
 
@@ -179,8 +183,9 @@ app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
     const cut = (value) => value ?  `${value.substr(0, 5)}******${value.substr(-5)}` : '';
     console.log(`${req.params.id} : Redirect: ${parsed.protocol}//${parsed.host}${cut(parsed.pathname)}${cut(parsed.search)}`);
     
-    res.redirect(url);
-    res.end();
+    res.status(302);
+    res.set('location', url);
+    res.send('');
 
   }catch(err){
 
@@ -188,28 +193,34 @@ app.get('/:userConfig/download/:type/:id/:torrentId', async(req, res) => {
 
     switch(err.message){
       case debrid.ERROR.NOT_READY:
-        res.redirect(`/videos/not_ready.mp4`);
-        res.end();
+        res.status(302);
+        res.set('location', `/videos/not_ready.mp4`);
+        res.send('');
         break;
       case debrid.ERROR.EXPIRED_API_KEY:
-        res.redirect(`/videos/expired_api_key.mp4`);
-        res.end();
+        res.status(302);
+        res.set('location', `/videos/expired_api_key.mp4`);
+        res.send('');
         break;
       case debrid.ERROR.NOT_PREMIUM:
-        res.redirect(`/videos/not_premium.mp4`);
-        res.end();
+        res.status(302);
+        res.set('location', `/videos/not_premium.mp4`);
+        res.send('');
         break;
       case debrid.ERROR.ACCESS_DENIED:
-        res.redirect(`/videos/access_denied.mp4`);
-        res.end();
+        res.status(302);
+        res.set('location', `/videos/access_denied.mp4`);
+        res.send('');
         break;
       case debrid.ERROR.TWO_FACTOR_AUTH:
-        res.redirect(`/videos/two_factor_auth.mp4`);
-        res.end();
+        res.status(302);
+        res.set('location', `/videos/two_factor_auth.mp4`);
+        res.send('');
         break;
       default:
-        res.redirect(`/videos/error.mp4`);
-        res.end();
+        res.status(302);
+        res.set('location', `/videos/error.mp4`);
+        res.send('');
     }
 
   }
