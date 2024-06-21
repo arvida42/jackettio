@@ -324,7 +324,7 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
     const rows = [torrent.name];
     if(type == 'series' && file.name)rows.push(file.name);
     if(torrent.infoText)rows.push(`ℹ️ ${torrent.infoText}`);
-    rows.push([`💾${bytesToSize(file.size || torrent.size)}`, `👥${torrent.seeders}`, ...(torrent.languages || []).map(language => language.emoji)].join(' '));
+    rows.push([`💾${bytesToSize(file.size || torrent.size)}`, `👥${torrent.seeders}`, `⚙️${torrent.indexerId}`, ...(torrent.languages || []).map(language => language.emoji)].join(' '));
     if(torrent.progress && !torrent.isCached){
       rows.push(`⬇️ ${torrent.progress.percent}% ${bytesToSize(torrent.progress.speed)}/s`);
     }
