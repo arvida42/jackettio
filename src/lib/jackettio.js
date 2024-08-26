@@ -47,10 +47,13 @@ function priotizeItems(allItems, priotizeItems, max){
 }
 
 function searchEpisodeFile(files, season, episode){
-  return files.find(file => file.name.includes(`S${numberPad(season)}E${numberPad(episode)}`))
-    || files.find(file => file.name.includes(`${season}${numberPad(episode)}`))
-    || files.find(file => file.name.includes(`${numberPad(episode)}`))
-    || false;
+  for(let padCount = 3; padCount >= 2; padCount--){
+    let episodeFile = files.find(file => file.name.includes(`S${numberPad(season, padCount)}E${numberPad(episode, padCount)}`))
+      || files.find(file => file.name.includes(`${season}${numberPad(episode, padCount)}`))
+      || files.find(file => file.name.includes(`${numberPad(episode, padCount)}`))
+      || false;
+    if(episodeFile)return episodeFile;
+  }
 }
 
 async function getTorrents(userConfig, metaInfos, debridInstance){
