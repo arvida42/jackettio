@@ -47,10 +47,10 @@ function priotizeItems(allItems, priotizeItems, max){
 }
 
 function searchEpisodeFile(files, season, episode){
-  for(let padCount = 3; padCount >= 2; padCount--){
-    let episodeFile = files.find(file => file.name.includes(`S${numberPad(season, padCount)}E${numberPad(episode, padCount)}`))
-      || files.find(file => file.name.includes(`${season}${numberPad(episode, padCount)}`))
-      || files.find(file => file.name.includes(`${numberPad(episode, padCount)}`))
+  for(let epPadCount = 3; epPadCount >= 2; epPadCount--){
+    let episodeFile = files.find(file => file.name.includes(`S${numberPad(season)}E${numberPad(episode, epPadCount)}`))
+      || files.find(file => file.name.includes(`${season}${numberPad(episode, epPadCount)}`))
+      || files.find(file => file.name.includes(`${numberPad(episode, epPadCount)}`))
       || false;
     if(episodeFile)return episodeFile;
   }
