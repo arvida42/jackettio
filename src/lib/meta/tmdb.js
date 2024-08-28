@@ -39,7 +39,7 @@ export default class Tmdb {
     });
 
     return {
-      name: meta.name,
+      name: meta.original_name || meta.name,
       year: parseInt(`${meta.first_air_date}`.split('-').shift()),
       imdb_id: id,
       type: 'series',
