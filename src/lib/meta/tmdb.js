@@ -24,8 +24,8 @@ export default class Tmdb {
 
   async getEpisodeById(id, season, episode, language){
 
-    const searchId = await this.#request('GET', `/3/find/${id}`, {query: {external_source: 'imdb_id'}}, {key: `searchId:${id}:${language || '-'}`, ttl: 3600*3});
-    const meta = await this.#request('GET', `/3/tv/${searchId.tv_results[0].id}`, {query: {language: language || 'en-US'}}, {key: id, ttl: 3600*3});
+    const searchId = await this.#request('GET', `/3/find/${id}`, {query: {external_source: 'imdb_id'}}, {key: `searchId:${id}`, ttl: 3600*3});
+    const meta = await this.#request('GET', `/3/tv/${searchId.tv_results[0].id}`, {query: {language: language || 'en-US'}}, {key: `${id}:${language}`, ttl: 3600*3});
 
     const episodes = [];
     meta.seasons.forEach(s => {
