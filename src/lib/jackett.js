@@ -18,7 +18,7 @@ export async function searchMovieTorrents({indexer, name, year}){
   if(!items){
     const res = await jackettApi(
       `/api/v2.0/indexers/${indexer}/results/torznab/api`,
-      {t: 'movie',q: name, year: year}
+      {t: 'search', cat: CATEGORY.MOVIE, q: name, year: year}
     );
     items = res?.rss?.channel?.item || [];
     cache.set(cacheKey, items, {ttl: items.length > 0 ? 3600*36 : 60});
@@ -37,7 +37,7 @@ export async function searchSerieTorrents({indexer, name, year}){
   if(!items){
     const res = await jackettApi(
       `/api/v2.0/indexers/${indexer}/results/torznab/api`,
-      {t: 'tvsearch',q: `${name}`}
+      {t: 'search', cat: CATEGORY.SERIES, q: `${name}`}
     );
     items = res?.rss?.channel?.item || [];
     cache.set(cacheKey, items, {ttl: items.length > 0 ? 3600*36 : 60});
@@ -56,7 +56,7 @@ export async function searchSeasonTorrents({indexer, name, year, season}){
   if(!items){
     const res = await jackettApi(
       `/api/v2.0/indexers/${indexer}/results/torznab/api`,
-      {t: 'tvsearch',q: `${name} S${numberPad(season)}`}
+      {t: 'search', cat: CATEGORY.SERIES, q: `${name} S${numberPad(season)}`}
     );
     items = res?.rss?.channel?.item || [];
     cache.set(cacheKey, items, {ttl: items.length > 0 ? 3600*36 : 60});
@@ -75,7 +75,7 @@ export async function searchEpisodeTorrents({indexer, name, year, season, episod
   if(!items){
     const res = await jackettApi(
       `/api/v2.0/indexers/${indexer}/results/torznab/api`,
-      {t: 'tvsearch',q: `${name} S${numberPad(season)}E${numberPad(episode)}`}
+      {t: 'search', cat: CATEGORY.SERIES, q: `${name} S${numberPad(season)}E${numberPad(episode)}`}
     );
     items = res?.rss?.channel?.item || [];
     cache.set(cacheKey, items, {ttl: items.length > 0 ? 3600*36 : 60});
