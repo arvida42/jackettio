@@ -7,6 +7,7 @@ import {readFileSync} from "fs";
 import config from './lib/config.js';
 import cache, {vacuum as vacuumCache, clean as cleanCache} from './lib/cache.js';
 import path from 'path';
+import * as meta from './lib/meta.js';
 import * as icon from './lib/icon.js';
 import * as debrid from './lib/debrid.js';
 import {getIndexers} from './lib/jackett.js';
@@ -92,6 +93,7 @@ app.get('/:userConfig?/configure', async(req, res) => {
     defaultUserConfig: config.defaultUserConfig,
     qualities: config.qualities,
     languages: config.languages.map(l => ({value: l.value, label: l.label})).filter(v => v.value != 'multi'),
+    metaLanguages: await meta.getLanguages(),
     sorts: config.sorts,
     indexers,
     passkey: {enabled: false},

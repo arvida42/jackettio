@@ -6,13 +6,13 @@ export default class Tmdb {
   static id = 'tmdb';
   static name = 'The Movie Database';
 
-  async getMovieById(id){
+  async getMovieById(id, language){
     
-    const searchId = await this.#request('GET', `/3/find/${id}`, {query: {external_source: 'imdb_id'}}, {key: `searchId:${id}`, ttl: 3600*3});
+    const searchId = await this.#request('GET', `/3/find/${id}`, {query: {external_source: 'imdb_id', language: language || 'en-US'}}, {key: `searchId:${id}:${language || '-'}`, ttl: 3600*3});
     const meta = searchId.movie_results[0];
 
     return {
-      name: meta.original_title || meta.title,
+      name: language ? meta.title || meta.original_title : meta.original_title || meta.title,
       year: parseInt(`${meta.release_date}`.split('-').shift()),
       imdb_id: id,
       type: 'movie',
@@ -22,10 +22,10 @@ export default class Tmdb {
 
   }
 
-  async getEpisodeById(id, season, episode){
+  async getEpisodeById(id, season, episode, language){
 
-    const searchId = await this.#request('GET', `/3/find/${id}`, {query: {external_source: 'imdb_id'}}, {key: `searchId:${id}`, ttl: 3600*3});
-    const meta = await this.#request('GET', `/3/tv/${searchId.tv_results[0].id}`, {query: {language: 'en-US'}}, {key: id, ttl: 3600*3});
+    const searchId = await this.#request('GET', `/3/find/${id}`, {query: {external_source: 'imdb_id'}}, {key: `searchId:${id}:${language || '-'}`, ttl: 3600*3});
+    const meta = await this.#request('GET', `/3/tv/${searchId.tv_results[0].id}`, {query: {language: language || 'en-US'}}, {key: id, ttl: 3600*3});
 
     const episodes = [];
     meta.seasons.forEach(s => {
@@ -39,7 +39,7 @@ export default class Tmdb {
     });
 
     return {
-      name: meta.original_name || meta.name,
+      name: language ? meta.name || meta.original_name : meta.original_name || meta.name,
       year: parseInt(`${meta.first_air_date}`.split('-').shift()),
       imdb_id: id,
       type: 'series',
@@ -50,6 +50,10 @@ export default class Tmdb {
       episodes
     };
 
+  }
+
+  async getLanguages(){
+    return [{value: '', label: '🌎Original (Recommended)'}].concat(...config.languages.map(language => ({value: language.iso639, label: language.label})).filter(language => language.value));
   }
 
   async #request(method, path, opts, cacheOpts){

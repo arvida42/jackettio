@@ -52,7 +52,10 @@ export default {
     sortUncached: sortCommaListToArray(process.env.DEFAULT_SORT_UNCACHED || 'seeders:true'),
     indexers: commaListToArray(process.env.DEFAULT_INDEXERS || 'all'),
     indexerTimeoutSec: parseInt(process.env.DEFAULT_INDEXER_TIMEOUT_SEC || '60'),
-    passkey: ''
+    passkey: '',
+    // If not defined, the original title is used for search. If defined, the title in the given language is used for search
+    // format: ISO 639-1, example: en
+    metaLanguage: process.env.DEFAULT_META_LANGUAGE || ''
   },
 
   qualities: [
@@ -71,21 +74,21 @@ export default {
     {value: [['size', true]], label: 'By size'}
   ],
   languages: [
-    {value: 'multi',      emoji: '🌎', pattern: 'multi'},
-    {value: 'arabic',     emoji: '🇦🇪', pattern: 'arabic'},
-    {value: 'chinese',    emoji: '🇨🇳', pattern: 'chinese'},
-    {value: 'german',     emoji: '🇩🇪', pattern: 'german'},
-    {value: 'english',    emoji: '🇺🇸', pattern: '(eng(lish)?)'},
-    {value: 'spanish',    emoji: '🇪🇸', pattern: 'spa(nish)?'},
-    {value: 'french',     emoji: '🇫🇷', pattern: 'fre(nch)?'},
-    {value: 'dutch',      emoji: '🇳🇱', pattern: 'dutch'},
-    {value: 'italian',    emoji: '🇮🇹', pattern: 'ita(lian)?'},
-    {value: 'korean',     emoji: '🇰🇷', pattern: 'korean'},
-    {value: 'portuguese', emoji: '🇵🇹', pattern: 'portuguese'},
-    {value: 'russian',    emoji: '🇷🇺', pattern: 'rus(sian)?'},
-    {value: 'swedish',    emoji: '🇸🇪', pattern: 'swedish'},
-    {value: 'tamil',      emoji: '🇮🇳', pattern: 'tamil'},
-    {value: 'turkish',    emoji: '🇹🇷', pattern: 'turkish'}
+    {value: 'multi',      emoji: '🌎', iso639: '',   pattern: 'multi'},
+    {value: 'arabic',     emoji: '🇦🇪', iso639: 'ar', pattern: 'arabic'},
+    {value: 'chinese',    emoji: '🇨🇳', iso639: 'zh', pattern: 'chinese'},
+    {value: 'german',     emoji: '🇩🇪', iso639: 'de', pattern: 'german'},
+    {value: 'english',    emoji: '🇺🇸', iso639: 'en', pattern: '(eng(lish)?)'},
+    {value: 'spanish',    emoji: '🇪🇸', iso639: 'es', pattern: 'spa(nish)?'},
+    {value: 'french',     emoji: '🇫🇷', iso639: 'fr', pattern: 'fre(nch)?'},
+    {value: 'dutch',      emoji: '🇳🇱', iso639: 'nl', pattern: 'dutch'},
+    {value: 'italian',    emoji: '🇮🇹', iso639: 'it', pattern: 'ita(lian)?'},
+    {value: 'korean',     emoji: '🇰🇷', iso639: 'ko', pattern: 'korean'},
+    {value: 'portuguese', emoji: '🇵🇹', iso639: 'pt', pattern: 'portuguese'},
+    {value: 'russian',    emoji: '🇷🇺', iso639: 'ru', pattern: 'rus(sian)?'},
+    {value: 'swedish',    emoji: '🇸🇪', iso639: 'sv', pattern: 'swedish'},
+    {value: 'tamil',      emoji: '🇮🇳', iso639: 'ta', pattern: 'tamil'},
+    {value: 'turkish',    emoji: '🇹🇷', iso639: 'tr', pattern: 'turkish'}
   ].map(lang => {
     lang.label = `${lang.emoji} ${lang.value.charAt(0).toUpperCase() + lang.value.slice(1)}`;
     lang.pattern = new RegExp(` ${lang.pattern} `, 'i');

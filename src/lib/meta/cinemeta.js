@@ -46,6 +46,10 @@ export default class Cinemeta {
 
   }
 
+  async getLanguages(){
+    return [];
+  }
+
   async #request(method, path, opts, cacheOpts){
 
     cacheOpts = Object.assign({key: '', ttl: 0}, cacheOpts || {});

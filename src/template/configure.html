@@ -25,7 +25,7 @@
           </div>
           <div class="mb-3" v-if="indexers.length >= 1 && !immulatableUserConfigKeys.includes('indexers')">
             <label>Indexers enabled:</label>
-            <div class="d-flex">
+            <div class="d-flex flex-wrap">
               <div v-for="indexer in indexers" class="me-3" :title="indexer.types.join(', ')">
                 <input class="form-check-input me-1" type="checkbox" v-model="indexer.checked" :id="indexer.label">
                 <label class="form-check-label" :for="indexer.label">{{indexer.label}}</label>
@@ -48,7 +48,7 @@
         <div class="ps-2 border-start border-secondary-subtle">
           <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('qualities')">
             <label>Qualities:</label>
-            <div class="d-flex">
+            <div class="d-flex flex-wrap">
               <div v-for="quality in qualities" class="me-3">
                 <input class="form-check-input me-1" type="checkbox" v-model="quality.checked" :id="quality.label">
                 <label class="form-check-label" :for="quality.label">{{quality.label}}</label>
@@ -83,10 +83,17 @@
             <small class="text-muted">This could increase the chance of cached torrents. 2 is a good number</small>
           </div>
           <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('priotizeLanguages')">
-            <label>Priotize languages</label>
+            <label>Priotize audio languages</label>
             <select v-model="form.priotizeLanguages" class="form-select" multiple>
               <option v-for="language in languages" :value="language.value">{{language.label}}</option>
             </select>
+          </div>
+          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('metaLanguage') && metaLanguages.length > 0">
+            <label>Search languages</label>
+            <select v-model="form.metaLanguage" class="form-select">
+              <option v-for="metaLanguage in metaLanguages" :value="metaLanguage.value">{{metaLanguage.label}}</option>
+            </select>
+            <small class="text-muted">By default, the search uses the original title and works in most cases, but you can force the search to use a specific language.</small>
           </div>
         </div>
         <h5>Debrid</h5>
@@ -127,7 +134,7 @@
       createApp({
         setup() {
 
-          const {addon, debrids, defaultUserConfig, qualities, languages, sorts, indexers, passkey, immulatableUserConfigKeys} = config;
+          const {addon, debrids, defaultUserConfig, qualities, languages, sorts, indexers, passkey, immulatableUserConfigKeys, metaLanguages} = config;
 
           const debrid = ref({});
           const error = ref('');
@@ -153,7 +160,8 @@
             sortUncached: defaultUserConfig.sortUncached,
             forceCacheNextEpisode: defaultUserConfig.forceCacheNextEpisode,
             priotizeLanguages: defaultUserConfig.priotizeLanguages,
-            indexerTimeoutSec: defaultUserConfig.indexerTimeoutSec
+            indexerTimeoutSec: defaultUserConfig.indexerTimeoutSec,
+            metaLanguage: defaultUserConfig.metaLanguage
           };
           qualities.forEach(quality => quality.checked = defaultUserConfig.qualities.includes(quality.value));
           indexers.forEach(indexer => indexer.checked = defaultUserConfig.indexers.includes(indexer.value) || defaultUserConfig.indexers.includes('all'));
@@ -209,7 +217,8 @@
             passkey,
             immulatableUserConfigKeys,
             languages,
-            isUpdate
+            isUpdate,
+            metaLanguages
           }
         }
       }).mount('#app')

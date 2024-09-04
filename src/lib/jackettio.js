@@ -17,12 +17,12 @@ function parseStremioId(stremioId){
   return {id, season: parseInt(season || 0), episode: parseInt(episode || 0)};
 }
 
-async function getMetaInfos(type, stremioId){
+async function getMetaInfos(type, stremioId, language){
   const {id, season, episode} = parseStremioId(stremioId);
   if(type == 'movie'){
-    return meta.getMovieById(id);
+    return meta.getMovieById(id, language);
   }else if(type == 'series'){
-    return meta.getEpisodeById(id, season, episode);
+    return meta.getEpisodeById(id, season, episode, language);
   }else{
     throw new Error(`Unsuported type ${type}`);
   }
@@ -247,7 +247,7 @@ async function prepareNextEpisode(userConfig, metaInfos, debridInstance){
 
     if(nextEpisode){
 
-      metaInfos = await meta.getEpisodeById(metaInfos.id, nextEpisode.season, nextEpisode.episode);
+      metaInfos = await meta.getEpisodeById(metaInfos.id, nextEpisode.season, nextEpisode.episode, userConfig.metaLanguage);
       const torrents = await getTorrents(userConfig, metaInfos, debridInstance);
 
       // Cache next episode on debrid when not cached
@@ -312,7 +312,7 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
   const {id, season, episode} = parseStremioId(stremioId);
   const debridInstance = debrid.instance(userConfig);
 
-  let metaInfos = await getMetaInfos(type, stremioId);
+  let metaInfos = await getMetaInfos(type, stremioId, userConfig.metaLanguage);
 
   const torrents = await getTorrents(userConfig, metaInfos, debridInstance);
 
@@ -360,7 +360,7 @@ export async function getDownload(userConfig, type, stremioId, torrentId){
 
     // Prepare next expisode debrid cache
     if(type == 'series' && userConfig.forceCacheNextEpisode){
-      getMetaInfos(type, stremioId).then(metaInfos => prepareNextEpisode(userConfig, metaInfos, debridInstance));
+      getMetaInfos(type, stremioId, userConfig.metaLanguage).then(metaInfos => prepareNextEpisode(userConfig, metaInfos, debridInstance));
     }
 
     download = await cache.get(cacheKey);
