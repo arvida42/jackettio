@@ -18,7 +18,8 @@ export async function searchMovieTorrents({indexer, name, year}){
   if(!items){
     const res = await jackettApi(
       `/api/v2.0/indexers/${indexer}/results/torznab/api`,
-      {t: 'search', cat: CATEGORY.MOVIE, q: name, year: year}
+      // year is buggy with some indexers
+      {t: 'search', cat: CATEGORY.MOVIE, q: name /*, year: year*/}
     );
     items = res?.rss?.channel?.item || [];
     cache.set(cacheKey, items, {ttl: items.length > 0 ? 3600*36 : 60});
@@ -130,6 +131,7 @@ function normalizeItems(items){
     }, {});
     const quality = item.title.match(/(2160|1080|720|480|360)p/);
     const title = parseWords(item.title).join(' ');
+    const year = item.title.replace(quality ? quality[1] : '', '').match(/(19|20[\d]{2})/);
     return {
       name: item.title,
       guid: item.guid,
@@ -143,6 +145,7 @@ function normalizeItems(items){
       magneturl: attr.magneturl || '', 
       type: item.type,
       quality: quality ? parseInt(quality[1]) : 0,
+      year: year ? parseInt(year.pop()) : 0,
       languages: config.languages.filter(lang => title.match(lang.pattern))
     };
   });

@@ -64,7 +64,7 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
   try {
 
     const {qualities, excludeKeywords, maxTorrents, sortCached, sortUncached, priotizePackTorrents, priotizeLanguages, indexerTimeoutSec} = userConfig;
-    const {id, season, episode, type, stremioId} = metaInfos;
+    const {id, season, episode, type, stremioId, year} = metaInfos;
 
     let torrents = [];
     let startDate = new Date();
@@ -81,7 +81,8 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
     const filterLanguage = (torrent) => {
       if(priotizeLanguages.length == 0)return true;
       return torrent.languages.find(lang => ['multi'].concat(priotizeLanguages).includes(lang.value));
-    }
+    };
+    const filterYear = (torrent) => !torrent.year || torrent.year == year;
 
     let indexers = (await jackett.getIndexers());
     let availableIndexers = indexers.filter(indexer => indexer.searching[type].available);
@@ -107,6 +108,8 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
       console.log(`${stremioId} : ${torrents.length} torrents found in ${(new Date() - startDate) / 1000}s`);
 
+      const yearTorrents = torrents.filter(filterYear);
+      if(yearTorrents.length)torrents = yearTorrents;
       torrents = torrents.filter(filterSearch).sort(sortBy(...sortSearch));
       torrents = priotizeItems(torrents, filterLanguage, Math.max(1, Math.round(maxTorrents * 0.33)));
       torrents = torrents.slice(0, maxTorrents + 2);
@@ -147,6 +150,8 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
       console.log(`${stremioId} : ${torrents.length} torrents found in ${(new Date() - startDate) / 1000}s`);
 
+      const yearTorrents = torrents.filter(filterYear);
+      if(yearTorrents.length)torrents = yearTorrents;
       torrents = torrents.filter(filterSearch).sort(sortBy(...sortSearch));
       torrents = priotizeItems(torrents, filterLanguage, Math.max(1, Math.round(maxTorrents * 0.33)));
       torrents = torrents.slice(0, maxTorrents + 2);
