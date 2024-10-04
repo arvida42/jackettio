@@ -40,6 +40,12 @@ export default {
   rateLimitWindow: parseInt(process.env.RATE_LIMIT_WINDOW || 60 * 60),
   // Rate limit the number of requests to resolve stream
   rateLimitRequest: parseInt(process.env.RATE_LIMIT_REQUEST || 150),
+  // Time (in seconds) needed to identify an indexer as slow
+  slowIndexerDuration: parseInt(process.env.SLOW_INDEXER_DURATION || 20) * 1000,
+  // Time window (in seconds) to monitor and count slow indexer requests (only requests within this period are considered)
+  slowIndexerWindow: parseInt(process.env.SLOW_INDEXER_WINDOW || 1800) * 1000,
+  // Number of consecutive slow requests within the time window to disable the indexer
+  slowIndexerRequest: parseInt(process.env.SLOW_INDEXER_REQUEST || 5),
 
   defaultUserConfig: {
     qualities: commaListToArray(process.env.DEFAULT_QUALITIES || '0, 720, 1080').map(v => parseInt(v)),
