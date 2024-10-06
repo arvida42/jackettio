@@ -2,6 +2,7 @@ import pLimit from 'p-limit';
 import {parseWords, numberPad, sortBy, bytesToSize, wait, promiseTimeout} from './util.js';
 import config from './config.js';
 import cache from './cache.js';
+import { updateUserConfigWithMediaFlowIp, applyMediaflowProxyIfNeeded } from './mediaflowProxy.js';
 import * as meta from './meta.js';
 import * as jackett from './jackett.js';
 import * as debrid from './debrid.js';
@@ -342,6 +343,7 @@ async function getDebridFiles(userConfig, infos, debridInstance){
 export async function getStreams(userConfig, type, stremioId, publicUrl){
 
   userConfig = mergeDefaultUserConfig(userConfig);
+  userConfig = await updateUserConfigWithMediaFlowIp(userConfig);
   const {id, season, episode} = parseStremioId(stremioId);
   const debridInstance = debrid.instance(userConfig);
 
@@ -365,7 +367,7 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
       rows.push(`⬇️ ${torrent.progress.percent}% ${bytesToSize(torrent.progress.speed)}/s`);
     }
     return {
-      name: `[${debridInstance.shortName}${torrent.isCached ? '+' : ''}] ${config.addonName} ${quality}`,
+      name: `[${debridInstance.shortName}${torrent.isCached ? '+' : ''}] ${userConfig.enableMediaFlow ? '🕵🏼‍♂️ ' : ''}${config.addonName} ${quality}`,
       title: rows.join("\n"),
       url: torrent.disabled ? '#' : `${publicUrl}/${btoa(JSON.stringify(userConfig))}/download/${type}/${stremioId}/${torrent.id}`
     };
@@ -376,10 +378,11 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
 export async function getDownload(userConfig, type, stremioId, torrentId){
 
   userConfig = mergeDefaultUserConfig(userConfig);
+  userConfig = await updateUserConfigWithMediaFlowIp(userConfig);
   const debridInstance = debrid.instance(userConfig);
   const infos = await torrentInfos.getById(torrentId);
   const {id, season, episode} = parseStremioId(stremioId);
-  const cacheKey = `download:2:${await debridInstance.getUserHash()}:${stremioId}:${torrentId}`;
+  const cacheKey = `download:2:${await debridInstance.getUserHash()}${userConfig.enableMediaFlow ? ':mfp': ''}:${stremioId}:${torrentId}`;
   let files;
   let download;
   let waitMs = 0;
@@ -417,6 +420,7 @@ export async function getDownload(userConfig, type, stremioId, torrentId){
     }
 
     if(download){
+      download = applyMediaflowProxyIfNeeded(download, userConfig);
       await cache.set(cacheKey, download, {ttl: 3600});
       return download;
     }

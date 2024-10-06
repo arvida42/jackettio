@@ -6,6 +6,7 @@
     <title>Jackettio</title>
     <link rel="icon" href="/icon">
     <link href="/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
       .container {
         max-width: 600px;
@@ -117,6 +118,44 @@
             <input type="{{field.type}}" v-model="field.value" class="form-control">
           </div>
         </div>
+
+        <h5>MediaFlow Proxy</h5>
+        <div class="ps-2 border-start border-secondary-subtle">
+          <div class="mb-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="form.enableMediaFlow" id="enableMediaFlow">
+              <label class="form-check-label" for="enableMediaFlow">Enable MediaFlow Proxy</label>
+            </div>
+          </div>
+          <div v-if="form.enableMediaFlow">
+            <div class="mb-2">
+              <a href="https://github.com/mhdzumair/mediaflow-proxy?tab=readme-ov-file#mediaflow-proxy" target="_blank" rel="noopener">
+                MediaFlow Setup Guide
+              </a>
+            </div>
+            <div class="mb-3">
+              <label for="mediaflowProxyUrl">MediaFlow Proxy URL:</label>
+              <input type="text" v-model="form.mediaflowProxyUrl" class="form-control" id="mediaflowProxyUrl" placeholder="https://your-mediaflow-proxy-url.com">
+            </div>
+            <div class="mb-3">
+              <label for="mediaflowApiPassword">MediaFlow API Password:</label>
+              <div class="input-group">
+                <input :type="showMediaFlowPassword ? 'text' : 'password'" v-model="form.mediaflowApiPassword" class="form-control" id="mediaflowApiPassword">
+                <button class="btn btn-outline-secondary" type="button" @click="toggleMediaFlowPassword">
+                  <i :class="showMediaFlowPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="mediaflowPublicIp">MediaFlow Public IP (Optional):</label>
+              <small class="text-muted">
+                Configure this only when running MediaFlow locally with a proxy service. Leave empty if MediaFlow is configured locally without a proxy server or if it's hosted on a remote server.
+              </small>
+              <input type="text" v-model="form.mediaflowPublicIp" class="form-control" id="mediaflowPublicIp" placeholder="Enter public IP address">
+            </div>
+          </div>
+        </div>
+
         <div class="my-3 d-flex align-items-center">
           <button @click="configure" type="button" class="btn btn-primary" :disabled="!debrid.id">{{isUpdate ? 'Update' : 'Install'}}</button>
           <div v-if="error" class="text-danger ms-2">{{error}}</div>
@@ -140,6 +179,11 @@
           const error = ref('');
           const manifestUrl = ref('');
           let isUpdate = false;
+          const showMediaFlowPassword = ref(false);
+
+          function toggleMediaFlowPassword() {
+            showMediaFlowPassword.value = !showMediaFlowPassword.value;
+          }
 
           if(config.userConfig){
             try {
@@ -151,7 +195,7 @@
             }catch(err){}
           }
 
-          const form = {
+          const form = ref({
             maxTorrents: defaultUserConfig.maxTorrents,
             priotizePackTorrents: defaultUserConfig.priotizePackTorrents,
             excludeKeywords: defaultUserConfig.excludeKeywords.join(','),
@@ -161,18 +205,23 @@
             forceCacheNextEpisode: defaultUserConfig.forceCacheNextEpisode,
             priotizeLanguages: defaultUserConfig.priotizeLanguages,
             indexerTimeoutSec: defaultUserConfig.indexerTimeoutSec,
-            metaLanguage: defaultUserConfig.metaLanguage
-          };
+            metaLanguage: defaultUserConfig.metaLanguage,
+            enableMediaFlow: defaultUserConfig.enableMediaFlow || false,
+            mediaflowProxyUrl: defaultUserConfig.mediaflowProxyUrl || '',
+            mediaflowApiPassword: defaultUserConfig.mediaflowApiPassword || '',
+            mediaflowPublicIp: defaultUserConfig.mediaflowPublicIp || ''
+          });
+
           qualities.forEach(quality => quality.checked = defaultUserConfig.qualities.includes(quality.value));
           indexers.forEach(indexer => indexer.checked = defaultUserConfig.indexers.includes(indexer.value) || defaultUserConfig.indexers.includes('all'));
 
           async function configure(){
             try {
               error.value = '';
-              const userConfig = Object.assign({}, form);
+              const userConfig = Object.assign({}, form.value);
               userConfig.qualities = qualities.filter(quality => quality.checked).map(quality => quality.value);
               userConfig.indexers = indexers.filter(indexer => indexer.checked).map(indexer => indexer.value);
-              userConfig.excludeKeywords = form.excludeKeywords.split(',').filter(Boolean);
+              userConfig.excludeKeywords = form.value.excludeKeywords.split(',').filter(Boolean);
               debrid.value.configFields.forEach(field => {
                 if(field.required && !field.value)throw new Error(`${field.label} is required`);
                 userConfig[field.name] = field.value
@@ -193,6 +242,16 @@
               if(passkey.enabled){
                 if(userConfig.passkey && !userConfig.passkey.match(new RegExp(passkey.pattern))){
                   throw new Error(`Tracker passkey have invalid format: ${passkey.pattern}`);
+                }
+              }
+
+              // MediaFlow config validation
+              if (userConfig.enableMediaFlow) {
+                if (!userConfig.mediaflowProxyUrl) {
+                  throw new Error('MediaFlow Proxy URL is required when MediaFlow is enabled');
+                }
+                if (!userConfig.mediaflowApiPassword) {
+                  throw new Error('MediaFlow API Password is required when MediaFlow is enabled');
                 }
               }
 
@@ -218,7 +277,9 @@
             immulatableUserConfigKeys,
             languages,
             isUpdate,
-            metaLanguages
+            metaLanguages,
+            showMediaFlowPassword,
+            toggleMediaFlowPassword
           }
         }
       }).mount('#app')
