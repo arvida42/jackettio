@@ -31,9 +31,11 @@ async function getMetaInfos(type, stremioId, language){
   }
 }
 
-function mergeDefaultUserConfig(userConfig){
+async function mergeDefaultUserConfig(userConfig){
   config.immulatableUserConfigKeys.forEach(key => delete userConfig[key]);
-  return Object.assign({}, config.defaultUserConfig, userConfig);
+  userConfig = Object.assign({}, config.defaultUserConfig, userConfig);
+  userConfig = await updateUserConfigWithMediaFlowIp(userConfig);
+  return userConfig;
 }
 
 function priotizeItems(allItems, priotizeItems, max){
@@ -342,8 +344,7 @@ async function getDebridFiles(userConfig, infos, debridInstance){
 
 export async function getStreams(userConfig, type, stremioId, publicUrl){
 
-  userConfig = mergeDefaultUserConfig(userConfig);
-  userConfig = await updateUserConfigWithMediaFlowIp(userConfig);
+  userConfig = await mergeDefaultUserConfig(userConfig);
   const {id, season, episode} = parseStremioId(stremioId);
   const debridInstance = debrid.instance(userConfig);
 
@@ -377,8 +378,7 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
 
 export async function getDownload(userConfig, type, stremioId, torrentId){
 
-  userConfig = mergeDefaultUserConfig(userConfig);
-  userConfig = await updateUserConfigWithMediaFlowIp(userConfig);
+  userConfig = await mergeDefaultUserConfig(userConfig);
   const debridInstance = debrid.instance(userConfig);
   const infos = await torrentInfos.getById(torrentId);
   const {id, season, episode} = parseStremioId(stremioId);

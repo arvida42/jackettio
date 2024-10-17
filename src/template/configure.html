@@ -6,7 +6,6 @@
     <title>Jackettio</title>
     <link rel="icon" href="/icon">
     <link href="/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
       .container {
         max-width: 600px;
@@ -18,8 +17,10 @@
     <div class="container my-5" v-cloak>
       <h1 class="mb-4">{{addon.name}} <span style="font-size:.6em">v{{addon.version}}</span></h1>
       <form class="shadow p-3 bg-dark-subtle z-3 rounded">
+
         <!-- welcome-message -->
-        <h5>Indexers</h5>
+
+        <h5 class="mt-4">Indexers</h5>
         <div class="ps-2 border-start border-secondary-subtle">
           <div class="mb-3 alert alert-warning" v-if="indexers.length == 0">
             No indexers available, Jackett instance does not seem to be configured correctly.
@@ -45,7 +46,8 @@
             <small class="text-muted">With the Passkey you can stream both cached and uncached torrents, while without the Passkey you can only stream cached torrents.</small>
           </div>
         </div>
-        <h5>Filters & Sorts</h5>
+
+        <h5 class="mt-4">Filters & Sorts</h5>
         <div class="ps-2 border-start border-secondary-subtle">
           <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('qualities')">
             <label>Qualities:</label>
@@ -97,14 +99,17 @@
             <small class="text-muted">By default, the search uses the original title and works in most cases, but you can force the search to use a specific language.</small>
           </div>
         </div>
-        <h5>Debrid</h5>
+
+        <h5 class="mt-4">Debrid</h5>
         <div class="ps-2 border-start border-secondary-subtle">
           <div class="mb-3 d-flex flex-row" v-if="!immulatableUserConfigKeys.includes('forceCacheNextEpisode')">
-            <input class="form-check-input me-1" type="checkbox" v-model="form.forceCacheNextEpisode" id="forceCacheNextEpisode">
-            <label for="forceCacheNextEpisode" class="d-flex flex-column">
-              <span>Prepare the next episode on Debrid. (Recommended)</span>
-              <small class="text-muted">Automatically add the next espisode on debrid when not avaiable to instantally stream it later.</small>
-            </label>
+            <div class="form-check form-switch">
+              <input class="form-check-input me-1" type="checkbox" v-model="form.forceCacheNextEpisode" id="forceCacheNextEpisode">
+              <label for="forceCacheNextEpisode" class="d-flex flex-column">
+                <span>Prepare the next episode on Debrid. (Recommended)</span>
+                <small class="text-muted">Automatically add the next espisode on debrid when not avaiable to instantally stream it later.</small>
+              </label>
+            </div>
           </div>
           <div class="mb-3">
             <label>Debrid provider:</label>
@@ -119,9 +124,9 @@
           </div>
         </div>
 
-        <h5>MediaFlow Proxy</h5>
+        <h5 class="mt-4">MediaFlow Proxy</h5>
         <div class="ps-2 border-start border-secondary-subtle">
-          <div class="mb-3">
+          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('enableMediaFlow')">
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" v-model="form.enableMediaFlow" id="enableMediaFlow">
               <label class="form-check-label" for="enableMediaFlow">Enable MediaFlow Proxy</label>
@@ -133,25 +138,32 @@
                 MediaFlow Setup Guide
               </a>
             </div>
-            <div class="mb-3">
+            <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('mediaflowProxyUrl')">
               <label for="mediaflowProxyUrl">MediaFlow Proxy URL:</label>
               <input type="text" v-model="form.mediaflowProxyUrl" class="form-control" id="mediaflowProxyUrl" placeholder="https://your-mediaflow-proxy-url.com">
             </div>
-            <div class="mb-3">
+            <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('mediaflowApiPassword')">
               <label for="mediaflowApiPassword">MediaFlow API Password:</label>
               <div class="input-group">
                 <input :type="showMediaFlowPassword ? 'text' : 'password'" v-model="form.mediaflowApiPassword" class="form-control" id="mediaflowApiPassword">
                 <button class="btn btn-outline-secondary" type="button" @click="toggleMediaFlowPassword">
-                  <i :class="showMediaFlowPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16" v-if="showMediaFlowPassword">
+                    <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                    <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                  </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash-fill" viewBox="0 0 16 16" v-else>
+                    <path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7 7 0 0 0 2.79-.588M5.21 3.088A7 7 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474z"/>
+                    <path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12z"/>
+                  </svg>
                 </button>
               </div>
             </div>
-            <div class="mb-3">
+            <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('mediaflowPublicIp')">
               <label for="mediaflowPublicIp">MediaFlow Public IP (Optional):</label>
+              <input type="text" v-model="form.mediaflowPublicIp" class="form-control" id="mediaflowPublicIp" placeholder="Enter public IP address">
               <small class="text-muted">
                 Configure this only when running MediaFlow locally with a proxy service. Leave empty if MediaFlow is configured locally without a proxy server or if it's hosted on a remote server.
               </small>
-              <input type="text" v-model="form.mediaflowPublicIp" class="form-control" id="mediaflowPublicIp" placeholder="Enter public IP address">
             </div>
           </div>
         </div>
@@ -163,6 +175,7 @@
             <a v-if="manifestUrl" :href="manifestUrl">Stremio Link</a>
           </div>
         </div>
+
       </form>
     </div>
 
@@ -206,10 +219,10 @@
             priotizeLanguages: defaultUserConfig.priotizeLanguages,
             indexerTimeoutSec: defaultUserConfig.indexerTimeoutSec,
             metaLanguage: defaultUserConfig.metaLanguage,
-            enableMediaFlow: defaultUserConfig.enableMediaFlow || false,
-            mediaflowProxyUrl: defaultUserConfig.mediaflowProxyUrl || '',
-            mediaflowApiPassword: defaultUserConfig.mediaflowApiPassword || '',
-            mediaflowPublicIp: defaultUserConfig.mediaflowPublicIp || ''
+            enableMediaFlow: defaultUserConfig.enableMediaFlow,
+            mediaflowProxyUrl: defaultUserConfig.mediaflowProxyUrl,
+            mediaflowApiPassword: defaultUserConfig.mediaflowApiPassword,
+            mediaflowPublicIp: defaultUserConfig.mediaflowPublicIp
           });
 
           qualities.forEach(quality => quality.checked = defaultUserConfig.qualities.includes(quality.value));

@@ -82,7 +82,7 @@ function encodeMediaflowProxyUrl(
   return `${baseUrl}?${encodedParams}`;
 }
 
-export async function updateUserConfigWithMediaFlowIp(userConfig) {
+export async function updateUserConfigWithMediaFlowIp(userConfig){
   if (userConfig.enableMediaFlow && userConfig.mediaflowProxyUrl && userConfig.mediaflowApiPassword) {
     const mediaflowPublicIp = await getMediaflowProxyPublicIp(userConfig);
     if (mediaflowPublicIp) {

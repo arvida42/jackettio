@@ -61,7 +61,11 @@ export default {
     passkey: '',
     // If not defined, the original title is used for search. If defined, the title in the given language is used for search
     // format: ISO 639-1, example: en
-    metaLanguage: process.env.DEFAULT_META_LANGUAGE || ''
+    metaLanguage: process.env.DEFAULT_META_LANGUAGE || '',
+    enableMediaFlow: (process.env.DEFAULT_ENABLE_MEDIA_FLOW || 'false') === 'true',
+    mediaflowProxyUrl: process.env.DEFAULT_MEDIA_FLOW_PROXY_URL || '',
+    mediaflowApiPassword: process.env.DEFAULT_MEDIA_FLOW_API_PASSWORD || '',
+    mediaflowPublicIp: process.env.DEFAULT_MEDIA_FLOW_PUBLIC_IP || ''
   },
 
   qualities: [
