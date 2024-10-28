@@ -93,6 +93,7 @@ export default {
     {value: 'french',     emoji: '🇫🇷', iso639: 'fr', pattern: 'fre(nch)?'},
     {value: 'dutch',      emoji: '🇳🇱', iso639: 'nl', pattern: 'dutch'},
     {value: 'italian',    emoji: '🇮🇹', iso639: 'it', pattern: 'ita(lian)?'},
+    {value: 'lithuanian', emoji: '🇱🇹', iso639: 'lt', pattern: 'lithuanian'},
     {value: 'korean',     emoji: '🇰🇷', iso639: 'ko', pattern: 'korean'},
     {value: 'portuguese', emoji: '🇵🇹', iso639: 'pt', pattern: 'portuguese'},
     {value: 'russian',    emoji: '🇷🇺', iso639: 'ru', pattern: 'rus(sian)?'},
