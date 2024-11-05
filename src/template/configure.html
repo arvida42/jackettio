@@ -63,13 +63,21 @@
             <input type="text" v-model="form.excludeKeywords" placeholder="keyword1,keyword2" class="form-control">
             <small class="text-muted">Example: cam,xvid</small>
           </div>
+          <div class="mb-3 d-flex flex-row" v-if="!immulatableUserConfigKeys.includes('hideUncached')">
+            <div class="form-check form-switch">
+              <input class="form-check-input me-1" type="checkbox" v-model="form.hideUncached" id="hideUncached">
+              <label for="hideUncached" class="d-flex flex-column">
+                <span>Display only cached torrents</span>
+              </label>
+            </div>
+          </div>
           <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('sortCached')">
             <label>Cached torrents sorting</label>
             <select v-model="form.sortCached" class="form-select">
               <option v-for="sort in sorts" :value="sort.value">{{sort.label}}</option>
             </select>
           </div>
-          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('sortUncached')">
+          <div class="mb-3" v-if="!immulatableUserConfigKeys.includes('sortUncached') && !form.hideUncached">
             <label>Uncached torrents sorting</label>
             <select v-model="form.sortUncached" class="form-select">
               <option v-for="sort in sorts" :value="sort.value">{{sort.label}}</option>
@@ -213,6 +221,7 @@
             priotizePackTorrents: defaultUserConfig.priotizePackTorrents,
             excludeKeywords: defaultUserConfig.excludeKeywords.join(','),
             debridId: defaultUserConfig.debridId || '',
+            hideUncached: defaultUserConfig.hideUncached,
             sortCached: defaultUserConfig.sortCached,
             sortUncached: defaultUserConfig.sortUncached,
             forceCacheNextEpisode: defaultUserConfig.forceCacheNextEpisode,

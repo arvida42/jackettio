@@ -242,8 +242,11 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
         console.log(`${stremioId} : ${cachedTorrents.length} cached torrents on ${debridInstance.shortName}`);
 
-        torrents = [].concat(priotizeItems(cachedTorrents.sort(sortBy(...sortCached)), filterLanguage))
-                     .concat(priotizeItems(uncachedTorrents.sort(sortBy(...sortUncached)), filterLanguage));
+        torrents = priotizeItems(cachedTorrents.sort(sortBy(...sortCached)), filterLanguage);
+
+        if(!userConfig.hideUncached){
+          torrents.push(...priotizeItems(uncachedTorrents.sort(sortBy(...sortUncached)), filterLanguage));
+        }
       
         const progress = await debridInstance.getProgressTorrents(torrents);
         torrents.forEach(torrent => torrent.progress = progress[torrent.infos.infoHash] || null);

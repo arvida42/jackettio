@@ -56,6 +56,7 @@ export default {
     forceCacheNextEpisode: (process.env.DEFAULT_FORCE_CACHE_NEXT_EPISODE || 'false') === 'true',
     sortCached: sortCommaListToArray(process.env.DEFAULT_SORT_CACHED || 'quality:true, size:true'),
     sortUncached: sortCommaListToArray(process.env.DEFAULT_SORT_UNCACHED || 'seeders:true'),
+    hideUncached:  (process.env.DEFAULT_HIDE_UNCACHED || 'false') === 'true',
     indexers: commaListToArray(process.env.DEFAULT_INDEXERS || 'all'),
     indexerTimeoutSec: parseInt(process.env.DEFAULT_INDEXER_TIMEOUT_SEC || '60'),
     passkey: '',
