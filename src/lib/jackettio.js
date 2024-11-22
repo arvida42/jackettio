@@ -370,7 +370,7 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
   }
 
   return torrents.map(torrent => {
-    const file = getFile(torrent.infos.files || [], type, season, episode);
+    const file = getFile(torrent.infos.files || [], type, season, episode) || {};
     const quality = torrent.quality > 0 ? config.qualities.find(q => q.value == torrent.quality).label : '';
     const rows = [torrent.name];
     if(type == 'series' && file.name)rows.push(file.name);
