@@ -97,6 +97,7 @@ export default {
     {value: 'lithuanian', emoji: '🇱🇹', iso639: 'lt', pattern: 'lithuanian'},
     {value: 'korean',     emoji: '🇰🇷', iso639: 'ko', pattern: 'korean'},
     {value: 'portuguese', emoji: '🇵🇹', iso639: 'pt', pattern: 'portuguese'},
+    {value: 'brazilian', emoji: '🇧🇷', iso639: 'pt-br', pattern: 'portuguese'},
     {value: 'russian',    emoji: '🇷🇺', iso639: 'ru', pattern: 'rus(sian)?'},
     {value: 'swedish',    emoji: '🇸🇪', iso639: 'sv', pattern: 'swedish'},
     {value: 'tamil',      emoji: '🇮🇳', iso639: 'ta', pattern: 'tamil'},
