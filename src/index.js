@@ -166,7 +166,7 @@ app.get("/stream/:type/:id.json", async(req, res) => {
 
 });
 
-app.use('/:userConfig/download/:type/:id/:torrentId', async(req, res, next) => {
+app.use('/:userConfig/download/:type/:id/:torrentId/:name?', async(req, res, next) => {
 
   if (req.method !== 'GET' && req.method !== 'HEAD'){
     return next();

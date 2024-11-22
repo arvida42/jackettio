@@ -345,6 +345,15 @@ async function getDebridFiles(userConfig, infos, debridInstance){
 
 }
 
+function getFile(files, type, season, episode){
+  files = files.sort(sortBy('size', true));
+  if(type == 'movie'){
+    return files[0];
+  }else if(type == 'series'){
+    return searchEpisodeFile(files, season, episode) || files[0];
+  }
+}
+
 export async function getStreams(userConfig, type, stremioId, publicUrl){
 
   userConfig = await mergeDefaultUserConfig(userConfig);
@@ -361,7 +370,7 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
   }
 
   return torrents.map(torrent => {
-    const file = type == 'series' && torrent.infos.files.length ? searchEpisodeFile(torrent.infos.files.sort(sortBy('size', true)), season, episode) : {};
+    const file = getFile(torrent.infos.files || [], type, season, episode);
     const quality = torrent.quality > 0 ? config.qualities.find(q => q.value == torrent.quality).label : '';
     const rows = [torrent.name];
     if(type == 'series' && file.name)rows.push(file.name);
@@ -373,7 +382,7 @@ export async function getStreams(userConfig, type, stremioId, publicUrl){
     return {
       name: `[${debridInstance.shortName}${torrent.isCached ? '+' : ''}] ${userConfig.enableMediaFlow ? '🕵🏼‍♂️ ' : ''}${config.addonName} ${quality}`,
       title: rows.join("\n"),
-      url: torrent.disabled ? '#' : `${publicUrl}/${btoa(JSON.stringify(userConfig))}/download/${type}/${stremioId}/${torrent.id}`
+      url: torrent.disabled ? '#' : `${publicUrl}/${btoa(JSON.stringify(userConfig))}/download/${type}/${stremioId}/${torrent.id}/${file.name || torrent.name}`
     };
   });
 
@@ -409,18 +418,8 @@ export async function getDownload(userConfig, type, stremioId, torrentId){
     files = await getDebridFiles(userConfig, infos, debridInstance);
     console.log(`${stremioId} : ${debridInstance.shortName} : ${infos.infoHash} : ${files.length} files found`);
 
-    files = files.sort(sortBy('size', true));
 
-    if(type == 'movie'){
-
-      download = await debridInstance.getDownload(files[0]);
-
-    }else if(type == 'series'){
-
-      let bestFile = searchEpisodeFile(files, season, episode) || files[0];
-      download = await debridInstance.getDownload(bestFile);
-
-    }
+    download = await debridInstance.getDownload(getFile(files, type, season, episode));
 
     if(download){
       download = applyMediaflowProxyIfNeeded(download, userConfig);
