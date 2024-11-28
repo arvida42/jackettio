@@ -27,11 +27,7 @@ export default class AllDebrid {
   }
 
   async getTorrentsCached(torrents){
-    const hashList = torrents.map(torrent => torrent.infos.infoHash).filter(Boolean);
-    const body = new FormData();
-    hashList.forEach(hash => body.append('magnets[]', hash));
-    const res = await this.#request('POST', '/magnet/instant', {body});
-    return torrents.filter(torrent => res.data.magnets.find(magnet => magnet.hash == torrent.infos.infoHash && magnet.instant));
+    return [];
   }
 
   async getProgressTorrents(torrents){
