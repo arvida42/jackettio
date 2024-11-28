@@ -27,10 +27,7 @@ export default class DebridLink {
   }
 
   async getTorrentsCached(torrents){
-    const hashList = torrents.map(torrent => torrent.infos.infoHash).filter(Boolean);
-    const query = {url: hashList.join(',')};
-    const res = await this.#request('GET', '/seedbox/cached', {query});
-    return torrents.filter(torrent => res.value[torrent.infos.infoHash]);
+    return [];
   }
 
   async getProgressTorrents(torrents){
