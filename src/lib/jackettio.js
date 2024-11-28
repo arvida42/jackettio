@@ -244,7 +244,7 @@ async function getTorrents(userConfig, metaInfos, debridInstance){
 
         torrents = priotizeItems(cachedTorrents.sort(sortBy(...sortCached)), filterLanguage);
 
-        if(!userConfig.hideUncached){
+        if(!userConfig.hideUncached || !debrid.cacheCheckAvailable){
           torrents.push(...priotizeItems(uncachedTorrents.sort(sortBy(...sortUncached)), filterLanguage));
         }
       

@@ -7,6 +7,7 @@ export default class DebridLink {
   static id = 'debridlink';
   static name = 'Debrid-Link';
   static shortName = 'DL';
+  static cacheCheckAvailable = false;
   static configFields = [
     {
       type: 'text', 

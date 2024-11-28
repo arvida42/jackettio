@@ -7,6 +7,7 @@ export default class AllDebrid {
   static id = 'alldebrid';
   static name = 'AllDebrid';
   static shortName = 'AD';
+  static cacheCheckAvailable = false;
   static configFields = [
     {
       type: 'text', 

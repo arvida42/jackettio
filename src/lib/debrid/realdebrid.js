@@ -7,6 +7,7 @@ export default class RealDebrid {
   static id = 'realdebrid';
   static name = 'Real-Debrid';
   static shortName = 'RD';
+  static cacheCheckAvailable = false;
   static configFields = [
     {
       type: 'text', 
